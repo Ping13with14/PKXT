@@ -26,10 +26,10 @@ public abstract class PlayerRunBaseState : PlayerStateBase
         playerController.MoveDirection();
 
         #region 水平移动
-        if (playerController.inputMoveVec2 != Vector2.zero && playerController.cc.enabled)
+        if (playerController.inputMoveVec2 != Vector2.zero && playerController.characterController.enabled)
         {
             // 水平移动，重力位移由FixedUpdate集中处理
-            playerController.cc.Move(playerModel.transform.forward * MoveSpeed * Time.deltaTime);
+            playerController.characterController.Move(playerModel.transform.forward * MoveSpeed * Time.deltaTime);
         }
         #endregion
 

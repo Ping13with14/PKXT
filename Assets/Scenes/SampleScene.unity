@@ -3941,7 +3941,7 @@ MonoBehaviour:
   mainCamera: {fileID: 0}
   RunningSpeed: 5
   FastRunSpeed: 8
-  cc: {fileID: 1087346605}
+  characterController: {fileID: 1087346605}
   inputMoveVec2: {x: 0, y: 0}
   inputMoveVec3: {x: 0, y: 0, z: 0}
   playerModel: {fileID: 6807115286638681736}
@@ -10257,6 +10257,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _animator: {fileID: 6807115286638681737}
+  characterController: {fileID: 1087346605}
   state: 0
   animationDuration: 0
   animDeltaPosition: {x: 0, y: 0, z: 0}

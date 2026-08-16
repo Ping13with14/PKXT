@@ -29,6 +29,8 @@ public class PlayerModel : MonoBehaviour
     //动画控制器
     public Animator _animator;
 
+    //角色控制器
+    public CharacterController characterController;
 
     //玩家状态
     public PlayerState state;
@@ -40,6 +42,9 @@ public class PlayerModel : MonoBehaviour
 
     public void Awake()
     {
+        // CC 挂在父物体 Player 上，模型为子物体，需向上查找
+        if (characterController == null)
+            characterController = GetComponentInParent<CharacterController>();
         if (_animator == null)
             _animator = GetComponent<Animator>();
         if (_animator == null)

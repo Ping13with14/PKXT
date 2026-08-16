@@ -39,11 +39,11 @@ public class PlayerRunningJumpState : PlayerStateBase
     public override void LateUpdate()
     {
         base.LateUpdate();
-        if (!playerController.cc.enabled) return;
+        if (!playerController.characterController.enabled) return;
 
         Vector3 movement = playerModel.transform.forward * jumpDis * Time.deltaTime;
         // 加入动画根运动 Y 分量，使 CC 跟随模型的纵向位移
         movement.y += playerModel.animDeltaPosition.y;
-        playerController.cc.Move(movement);
+        playerController.characterController.Move(movement);
     }
 }

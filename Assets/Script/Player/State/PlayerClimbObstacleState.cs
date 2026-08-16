@@ -68,7 +68,7 @@ public class PlayerClimbObstacleState : PlayerStateBase
             if (!playerModel._animator.IsInTransition(0) && stateInfo.normalizedTime >= 0.85f)
             {
                 Vector3 lift = Vector3.up * ObHeight + playerModel.transform.forward * 0.3f;
-                playerController.cc.Move(lift);
+                playerController.characterController.Move(lift);
                 _hasAppliedLift = true;
             }
         }
@@ -86,8 +86,8 @@ public class PlayerClimbObstacleState : PlayerStateBase
     public override void LateUpdate()
     {
         base.LateUpdate();
-        if (playerController.cc.enabled)
-            playerController.cc.Move(playerModel.animDeltaPosition);
+        if (playerController.characterController.enabled)
+            playerController.characterController.Move(playerModel.animDeltaPosition);
     }
 
     public override void Exit()
@@ -95,6 +95,6 @@ public class PlayerClimbObstacleState : PlayerStateBase
         base.Exit();
         playerController.SetControl(true);
         playerModel._animator.applyRootMotion = false;
-        playerController.cc.enabled = true;
+        playerController.characterController.enabled = true;
     }
 }

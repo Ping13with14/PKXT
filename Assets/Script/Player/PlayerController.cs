@@ -10,9 +10,8 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
     public float RunningSpeed = 5f;
     //快速跑速度
     public float FastRunSpeed = 8f;
-
-    //角色控制器
-    public CharacterController cc;
+    //拿到模型
+    public PlayerModel playerModel;
 
     //输入系统
     [HideInInspector] public InputSystem inputSystem;
@@ -23,8 +22,9 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
 
     //状态机
     private StateMachine stateMachine;
-    //模型
-    public PlayerModel playerModel;
+
+    //角色控制器
+    public CharacterController characterController;
 
     //动画播放时长
     public float AnimationPlayTime = 0;
@@ -56,7 +56,10 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
         //实例化输入系统
         inputSystem = new InputSystem();
         mainCamera = Camera.main;
-        cc = GetComponent<CharacterController>();
+        // 优先从模型取CC引用；Awake时序中父物体先于子物体，可能尚未赋值，需兜底
+        characterController = playerModel.characterController;
+        if (characterController == null)
+            characterController = GetComponent<CharacterController>();
     }
 
     public void Start()
@@ -117,9 +120,9 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
         // 重力常量每帧累加，不依赖任何地面检测结果
         verticalVelocity += gravity * Time.fixedDeltaTime;
         // 每帧Y方向应用重力位移，CC碰撞保证模型真实触碰地面
-        cc.Move(Vector3.up * verticalVelocity * Time.fixedDeltaTime);
+        characterController.Move(Vector3.up * verticalVelocity * Time.fixedDeltaTime);
         // 基于CC真实碰撞结果归零垂直速度，避免球体检测半径导致提前悬空
-        if (cc.isGrounded)
+        if (characterController.isGrounded)
             verticalVelocity = 0f;
         // 球体地面检测仅用于状态切换，不与重力逻辑绑定
         isGround = IsGround();
@@ -163,7 +166,7 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
     public void SetControl(bool isControl)
     {
         hasGravity = isControl;
-        cc.detectCollisions = isControl;
+        characterController.detectCollisions = isControl;
         // CC始终保持启用，动画位移通过cc.Move驱动，不直接操作transform
     }
 
