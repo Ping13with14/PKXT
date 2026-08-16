@@ -9,7 +9,7 @@ public class PlayerFastRunState : PlayerStateBase
     public override void Enter()
     {
         base.Enter();
-        playerController.PlayerAnimation("Fast Run",0.8f);
+        playerController.PlayAnimation("Fast Run",0.8f);
     }
 
     public override void Update()
@@ -37,7 +37,7 @@ public class PlayerFastRunState : PlayerStateBase
         #region 
         if (playerController.inputSystem.Player.Jump.triggered)
         {
-            playerController.SwitchState(PlayerState.RuningJump);
+            playerController.SwitchState(PlayerState.RunningJump);
             return;
         }
         #endregion

@@ -1,4 +1,3 @@
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 /// <summary>
@@ -8,7 +7,7 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
 {
     public Camera mainCamera;
     //慢跑速度
-    public float RuningSpeed = 5f;
+    public float RunningSpeed = 5f;
     //快速跑速度
     public float FastRunSpeed = 8f;
 
@@ -37,7 +36,7 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
     //检测半径
     public float CheckRadius = 0.3f;
     //检测点偏转值
-    public Vector3 GroundTestOffest;
+    public Vector3 GroundTestOffset;
 
     //重力加速度
     public float gravity = -9.8f;
@@ -81,17 +80,17 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
             case PlayerState.HappyIdle:
                 stateMachine.EnterState<PlayerHappyIdleState>();
                 break;
-            case PlayerState.Runing:
-                stateMachine.EnterState<PlayerRuningState>();
+            case PlayerState.Running:
+                stateMachine.EnterState<PlayerRunningState>();
                 break;
             case PlayerState.FastRun:
                 stateMachine.EnterState<PlayerFastRunState>();
                 break;
-            case PlayerState.RuningJump:
+            case PlayerState.RunningJump:
                 stateMachine.EnterState<PlayerRunningJumpState>();
                 break;
-            case PlayerState.ClimbObscatle:
-                stateMachine.EnterState<PlayerClimbObscatleState>();
+            case PlayerState.ClimbObstacle:
+                stateMachine.EnterState<PlayerClimbObstacleState>();
                 break;
         }
         if (playerModel != null)
@@ -103,7 +102,7 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
     /// </summary>
     /// <param name="animationName">动画名称</param>
     /// <param name="fixedTransitionDuration">过渡时长</param>
-    public void PlayerAnimation(string animationName, float fixedTransitionDuration = 0.25f)
+    public void PlayAnimation(string animationName, float fixedTransitionDuration = 0.25f)
     {
         playerModel._animator.CrossFadeInFixedTime(animationName, fixedTransitionDuration);
         AnimationPlayTime = 0;
@@ -173,14 +172,14 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
     /// </summary>
     public bool IsGround()
     {
-        return Physics.CheckSphere(transform.position + GroundTestOffest, CheckRadius, GroundLayer);
+        return Physics.CheckSphere(transform.position + GroundTestOffset, CheckRadius, GroundLayer);
     }
 
     //检测绘制方法
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.green;
-        Gizmos.DrawSphere(transform.position + GroundTestOffest, CheckRadius);
+        Gizmos.DrawSphere(transform.position + GroundTestOffset, CheckRadius);
     }
 
     private void OnEnable()

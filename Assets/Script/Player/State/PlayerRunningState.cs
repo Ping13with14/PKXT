@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 模型跑步状态脚本
-public class PlayerRuningState : PlayerStateBase
+public class PlayerRunningState : PlayerStateBase
 {
     public override void Enter()
     {
         base.Enter();
-        playerController.PlayerAnimation("Running");
+        playerController.PlayAnimation("Running");
     }
 
     public override void Update()
@@ -21,7 +21,7 @@ public class PlayerRuningState : PlayerStateBase
         if (playerController.inputMoveVec2 != Vector2.zero && playerController.cc.enabled)
         {
             // 水平移动，重力位移由FixedUpdate集中处理
-            playerController.cc.Move(playerModel.transform.forward * playerController.RuningSpeed * Time.deltaTime);
+            playerController.cc.Move(playerModel.transform.forward * playerController.RunningSpeed * Time.deltaTime);
         }
         #endregion
         #region 
@@ -41,7 +41,7 @@ public class PlayerRuningState : PlayerStateBase
         #region 
         if (playerController.inputSystem.Player.Jump.triggered)
         {
-            playerController.SwitchState(PlayerState.RuningJump);
+            playerController.SwitchState(PlayerState.RunningJump);
             return;
         }
         #endregion

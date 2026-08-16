@@ -3939,7 +3939,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainCamera: {fileID: 0}
-  RuningSpeed: 5
+  RunningSpeed: 5
   FastRunSpeed: 8
   cc: {fileID: 1087346605}
   inputMoveVec2: {x: 0, y: 0}
@@ -3951,7 +3951,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 72
   CheckRadius: 0.3
-  GroundTestOffest: {x: 0, y: -0, z: 0}
+  GroundTestOffset: {x: 0, y: -0, z: 0}
   gravity: -9.8
   verticalVelocity: 0
   hasGravity: 1
@@ -10325,11 +10325,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9867da2bead39e4dbff8adb45eece5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  forwardRayOffest: {x: 0, y: 0.25, z: 0}
+  forwardRayOffset: {x: 0, y: 0.25, z: 0}
   forwardRayLength: 0.8
   heightRayLength: 5
-  heightPointTransformOffest: 0.1
-  widthPointTransformOffest: 1
+  heightPointTransformOffset: 0.1
+  widthPointTransformOffset: 1
   ObstacleLayer:
     serializedVersion: 2
     m_Bits: 64

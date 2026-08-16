@@ -16,7 +16,7 @@ public class PlayerRunningJumpState : PlayerStateBase
         base.Enter();
         // 起跳时赋予初始垂直速度，后续由重力累计每帧递减
         playerController.verticalVelocity = jumpForce;
-        playerController.PlayerAnimation("Runing Jump");
+        playerController.PlayAnimation("Running Jump");
     }
 
     public override void Update()
@@ -27,7 +27,7 @@ public class PlayerRunningJumpState : PlayerStateBase
         {
             if (playerController.inputMoveVec2 != Vector2.zero)
             {
-                playerController.SwitchState(PlayerState.Runing);
+                playerController.SwitchState(PlayerState.Running);
                 return;
             }
             else

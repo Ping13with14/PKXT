@@ -7,7 +7,7 @@ using UnityEngine;
 /// 翻越障碍状态：关闭重力与碰撞检测，CC通过动画根运动位移跟随模型。
 /// 动画接近结束时抬升角色到障碍物高度并略微前推，确保 CC 越过障碍。
 /// </summary>
-public class PlayerClimbObscatleState : PlayerStateBase
+public class PlayerClimbObstacleState : PlayerStateBase
 {
     float ObHeight = 0.0f;
 
@@ -18,15 +18,15 @@ public class PlayerClimbObscatleState : PlayerStateBase
     {
         base.Enter();
 
-        ObHeight = ClimbAnimTargetMatch.CheckObscatleHeight();
+        ObHeight = ClimbAnimTargetMatch.CheckObstacleHeight();
 
         // 关闭重力与碰撞检测，CC保持启用，动画位移由cc.Move驱动
         playerController.SetControl(false);
 
         _hasAppliedLift = false;
 
-        //厚度区分翻羽与攀爬动作
-        if (ClimbAnimTargetMatch.rayCast.ObscatleCheck().widthHitFound)
+        //厚度区分翻越与攀爬动作
+        if (ClimbAnimTargetMatch.rayCast.ObstacleCheck().widthHitFound)
         {
             //攀爬逻辑
             foreach (var item in ClimbAnimTargetMatch.climbUpAnimSOs)
@@ -35,7 +35,7 @@ public class PlayerClimbObscatleState : PlayerStateBase
                 {
                     Debug.Log("播放的动画" + item.animStateName);
                     ClimbAnimTargetMatch.SetCurrentClimbAnimSO(item);
-                    playerController.PlayerAnimation(item.animStateName, 0.0f);
+                    playerController.PlayAnimation(item.animStateName, 0.0f);
                     break;
                 }
             }
@@ -49,7 +49,7 @@ public class PlayerClimbObscatleState : PlayerStateBase
                 {
                     Debug.Log("播放的动画" + item.animStateName);
                     ClimbAnimTargetMatch.SetCurrentClimbAnimSO(item);
-                    playerController.PlayerAnimation(item.animStateName, 0.0f);
+                    playerController.PlayAnimation(item.animStateName, 0.0f);
                     break;
                 }
             }
@@ -79,7 +79,7 @@ public class PlayerClimbObscatleState : PlayerStateBase
             if (playerController.inputMoveVec2 == Vector2.zero)
                 playerController.SwitchState(PlayerState.Idle);
             else
-                playerController.SwitchState(PlayerState.Runing);
+                playerController.SwitchState(PlayerState.Running);
         }
     }
 

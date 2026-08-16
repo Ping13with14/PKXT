@@ -19,7 +19,7 @@ public class ClimbAnimTargetMatch : MonoBehaviour
     private CharacterController _cc;
     private ClimbAnimSO _climbAnimSO;
     private int _lastAnimHash;
-    private ObstacleHitDate _cachedHit;
+    private ObstacleHitData _cachedHit;
     public Vector3 _targetPos;
     private bool _hasMatched;
 
@@ -31,8 +31,8 @@ public class ClimbAnimTargetMatch : MonoBehaviour
 
     private void Update()
     {
-        _cachedHit = rayCast.ObscatleCheck();
-        //Debug.Log(rayCast.ObscatleCheck().heightHit.point);
+        _cachedHit = rayCast.ObstacleCheck();
+        //Debug.Log(rayCast.ObstacleCheck().heightHit.point);
         //CheckCurrentPlayingAnim();
         if (_climbAnimSO != null)
         {
@@ -57,7 +57,7 @@ public class ClimbAnimTargetMatch : MonoBehaviour
         }
     }
     //获取检测到的障碍物的高度
-    public float CheckObscatleHeight()
+    public float CheckObstacleHeight()
     {
         if (_cachedHit.forwardHitFound && _cachedHit.heightHitFound)
         {

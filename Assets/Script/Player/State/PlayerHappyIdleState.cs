@@ -14,11 +14,11 @@ public class PlayerHappyIdleState : PlayerStateBase
         int randomNum = Random.Range(0, 2);
         if (randomNum == 0)
         {
-            playerController.PlayerAnimation("Happy Idle", 1f);
+            playerController.PlayAnimation("Happy Idle", 1f);
         }
         else
         {
-            playerController.PlayerAnimation("Sad Idle");
+            playerController.PlayAnimation("Sad Idle");
         }
 
     }
@@ -37,7 +37,7 @@ public class PlayerHappyIdleState : PlayerStateBase
         #region 监听奔跑
         if (playerController.inputMoveVec2 != Vector2.zero)
         {
-            playerController.SwitchState(PlayerState.Runing);
+            playerController.SwitchState(PlayerState.Running);
             return;
         }
         #endregion

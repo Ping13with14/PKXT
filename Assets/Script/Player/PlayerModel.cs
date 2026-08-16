@@ -18,7 +18,7 @@ public enum BodyJointType
 /// </summary>
 public enum PlayerState
 {
-    Idle, HappyIdle, Runing, FastRun, RuningJump, ClimbObscatle
+    Idle, HappyIdle, Running, FastRun, RunningJump, ClimbObstacle
 }
 
 /// <summary>

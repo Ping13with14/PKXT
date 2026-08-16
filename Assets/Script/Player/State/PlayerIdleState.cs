@@ -10,7 +10,7 @@ public class PlayerIdleState : PlayerStateBase
     public override void Enter()
     {
         base.Enter();
-        playerController.PlayerAnimation("Idle");
+        playerController.PlayAnimation("Idle");
     }
 
     public override void Update()
@@ -29,23 +29,23 @@ public class PlayerIdleState : PlayerStateBase
         #region 监听奔跑
         if (playerController.inputMoveVec2 != Vector2.zero)
         {
-            playerController.SwitchState(PlayerState.Runing);
+            playerController.SwitchState(PlayerState.Running);
             return;
         }
         #endregion
 
         #region 检测跳跃
-        if (playerController.inputSystem.Player.Jump.triggered && ClimbAnimTargetMatch.CheckObscatleHeight() <= 0.5)
+        if (playerController.inputSystem.Player.Jump.triggered && ClimbAnimTargetMatch.CheckObstacleHeight() <= 0.5)
         {
-            playerController.SwitchState(PlayerState.RuningJump);
+            playerController.SwitchState(PlayerState.RunningJump);
             return;
         }
         #endregion
 
         #region 检测奔跑跳
-        if (playerController.inputSystem.Player.Jump.triggered && ClimbAnimTargetMatch.CheckObscatleHeight() > 0.5)
+        if (playerController.inputSystem.Player.Jump.triggered && ClimbAnimTargetMatch.CheckObstacleHeight() > 0.5)
         {
-            playerController.SwitchState(PlayerState.ClimbObscatle);
+            playerController.SwitchState(PlayerState.ClimbObstacle);
             return;
         }
         #endregion
