@@ -51,3 +51,6 @@ ProjectSettings/ManuallyReloadSettings.asset
 # Crash 与诊断
 sysinfo.txt
 *.stackdump
+
+# 本地工具缓存
+.dotnet-home/
