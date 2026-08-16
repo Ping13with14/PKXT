@@ -63,6 +63,15 @@ public class PlayerModel : MonoBehaviour
     {
         animDeltaPosition = _animator.deltaPosition;
         animDeltaRotation = _animator.deltaRotation;
+
+        // 【临时诊断】只在翻越动画播放中输出，避免结束后的刷屏。诊断完成后删除。
+        if (state == PlayerState.ClimbObstacle)
+        {
+            float norm = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+            if (norm < 0.98f)
+                Debug.Log($"[ClimbDiag] 帧:{Time.frameCount} 动画进度:{norm:F2} applyRootMotion:{_animator.applyRootMotion} " +
+                          $"delta:{animDeltaPosition} 模型位置:{transform.position}");
+        }
     }
 
     public bool IsAnimationEnd()

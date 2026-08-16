@@ -3,15 +3,18 @@ using UnityEngine;
 
 
 /// <summary>
-/// 翻越障碍状态：关闭重力与碰撞检测，CC通过动画根运动位移跟随模型。
-/// 动画接近结束时抬升角色到障碍物高度并略微前推，确保 CC 越过障碍。
+/// 翻越障碍状态：关闭重力与碰撞检测。
+/// 攀爬动画为原地动画（无根运动位移），因此由代码在动画播放期间将 CC 从起点匀速移动到目标点，
+/// 与动画进度同步，产生平滑的翻越位移。
 /// </summary>
 public class PlayerClimbObstacleState : PlayerStateBase
 {
     float ObHeight = 0.0f;
 
-    // 动画结束前约 15% 时间点施加一次抬升位移，之后由根运动跑完剩余帧
-    bool _hasAppliedLift;
+    // 位移起点（世界坐标）
+    Vector3 _startPos;
+    // 位移终点（世界坐标）：障碍物顶部 + 前方偏移
+    Vector3 _endPos;
 
     public override void Enter()
     {
@@ -19,10 +22,12 @@ public class PlayerClimbObstacleState : PlayerStateBase
 
         ObHeight = ClimbAnimTargetMatch.CheckObstacleHeight();
 
-        // 关闭重力与碰撞检测，CC保持启用，动画位移由cc.Move驱动
+        // 关闭重力与碰撞检测，CC保持启用，位移由代码匀速驱动
         playerController.SetControl(false);
 
-        _hasAppliedLift = false;
+        // 记录位移起点与终点
+        _startPos = playerController.transform.position;
+        _endPos = CalcEndPos();
 
         //厚度区分翻越与攀爬动作
         ClimbAnimSO matchedSO = FindMatchAnimSO(
@@ -44,6 +49,25 @@ public class PlayerClimbObstacleState : PlayerStateBase
     }
 
     /// <summary>
+    /// 计算位移终点：障碍物顶部命中点，再沿模型前方推出一段距离，确保 CC 越过障碍边缘。
+    /// </summary>
+    private Vector3 CalcEndPos()
+    {
+        var hitData = ClimbAnimTargetMatch.rayCast.ObstacleCheck();
+        if (hitData.heightHitFound)
+        {
+            Vector3 top = hitData.heightHit.point;
+            // 顶部点 + 前方偏移（跨过障碍物中心），保留障碍高度
+            return new Vector3(
+                top.x + playerModel.transform.forward.x * 0.6f,
+                top.y,
+                top.z + playerModel.transform.forward.z * 0.6f);
+        }
+        // 未检测到顶部时退化为仅抬升
+        return playerController.transform.position + Vector3.up * ObHeight;
+    }
+
+    /// <summary>
     /// 在动作列表中按障碍高度匹配第一个可用的ClimbAnimSO，未匹配返回null
     /// </summary>
     private ClimbAnimSO FindMatchAnimSO(List<ClimbAnimSO> animSOs)
@@ -60,18 +84,12 @@ public class PlayerClimbObstacleState : PlayerStateBase
     {
         base.Update();
 
-        // 动画接近尾声时，将角色整体抬升到障碍高度并略向前推，帮助 CC 越过障碍边缘。
-        // 此时碰撞已关闭，cc.Move 直接生效；抬升在动画结束前完成，剩余帧由根运动微调。
-        if (!_hasAppliedLift)
-        {
-            var stateInfo = playerModel._animator.GetCurrentAnimatorStateInfo(0);
-            if (!playerModel._animator.IsInTransition(0) && stateInfo.normalizedTime >= 0.85f)
-            {
-                Vector3 lift = Vector3.up * ObHeight + playerModel.transform.forward * 0.3f;
-                playerController.characterController.Move(lift);
-                _hasAppliedLift = true;
-            }
-        }
+        // 按动画进度匀速移动 CC：进度 t ∈ [0,1]，从起点插值到终点
+        float t = GetAnimProgress();
+        Vector3 targetPos = Vector3.Lerp(_startPos, _endPos, t);
+        Vector3 delta = targetPos - playerController.transform.position;
+        if (delta.sqrMagnitude > 0.0001f)
+            playerController.characterController.Move(delta);
 
         // 动画播放结束，根据输入切换到待机或跑步
         if (playerModel.IsAnimationEnd())
@@ -83,11 +101,20 @@ public class PlayerClimbObstacleState : PlayerStateBase
         }
     }
 
+    /// <summary>
+    /// 当前动画归一化进度：过渡结束后从 0 递增到 1
+    /// </summary>
+    private float GetAnimProgress()
+    {
+        var stateInfo = playerModel._animator.GetCurrentAnimatorStateInfo(0);
+        if (playerModel._animator.IsInTransition(0))
+            return 0f;
+        return Mathf.Clamp01(stateInfo.normalizedTime);
+    }
+
     public override void LateUpdate()
     {
         base.LateUpdate();
-        if (playerController.characterController.enabled)
-            playerController.characterController.Move(playerModel.animDeltaPosition);
     }
 
     public override void Exit()
