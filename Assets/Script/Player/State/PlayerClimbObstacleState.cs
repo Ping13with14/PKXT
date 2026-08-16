@@ -26,34 +26,35 @@ public class PlayerClimbObstacleState : PlayerStateBase
         _hasAppliedLift = false;
 
         //厚度区分翻越与攀爬动作
-        if (ClimbAnimTargetMatch.rayCast.ObstacleCheck().widthHitFound)
+        ClimbAnimSO matchedSO = FindMatchAnimSO(
+            ClimbAnimTargetMatch.rayCast.ObstacleCheck().widthHitFound
+                ? ClimbAnimTargetMatch.climbUpAnimSOs
+                : ClimbAnimTargetMatch.climbAnimSOs);
+
+        // 兜底：高度不在任何SO区间时，避免状态卡死，直接切回待机
+        if (matchedSO == null)
         {
-            //攀爬逻辑
-            foreach (var item in ClimbAnimTargetMatch.climbUpAnimSOs)
-            {
-                if (ObHeight > item.minHeight && ObHeight < item.maxHeight)
-                {
-                    Debug.Log("播放的动画" + item.animStateName);
-                    ClimbAnimTargetMatch.SetCurrentClimbAnimSO(item);
-                    playerController.PlayAnimation(item.animStateName, 0.0f);
-                    break;
-                }
-            }
+            Debug.LogWarning($"障碍高度 {ObHeight:F2} 未匹配任何 ClimbAnimSO，取消翻越");
+            playerController.SwitchState(PlayerState.Idle);
+            return;
         }
-        else
+
+        Debug.Log("播放的动画" + matchedSO.animStateName);
+        ClimbAnimTargetMatch.SetCurrentClimbAnimSO(matchedSO);
+        playerController.PlayAnimation(matchedSO.animStateName, 0.0f);
+    }
+
+    /// <summary>
+    /// 在动作列表中按障碍高度匹配第一个可用的ClimbAnimSO，未匹配返回null
+    /// </summary>
+    private ClimbAnimSO FindMatchAnimSO(List<ClimbAnimSO> animSOs)
+    {
+        foreach (var item in animSOs)
         {
-            //翻越逻辑
-            foreach (var item in ClimbAnimTargetMatch.climbAnimSOs)
-            {
-                if (ObHeight > item.minHeight && ObHeight < item.maxHeight)
-                {
-                    Debug.Log("播放的动画" + item.animStateName);
-                    ClimbAnimTargetMatch.SetCurrentClimbAnimSO(item);
-                    playerController.PlayAnimation(item.animStateName, 0.0f);
-                    break;
-                }
-            }
+            if (ObHeight > item.minHeight && ObHeight < item.maxHeight)
+                return item;
         }
+        return null;
     }
 
     public override void Update()

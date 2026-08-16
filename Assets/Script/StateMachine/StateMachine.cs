@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Xml.Xsl;
-using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -51,7 +49,7 @@ public class StateMachine
 
         #region 进入新状态
         currentState = LoadState<T>();
-        EnterCurentState();
+        EnterCurrentState();
         #endregion
     }
 
@@ -76,12 +74,13 @@ public class StateMachine
         return state;
     }
 
-    private void EnterCurentState()
+    private void EnterCurrentState()
     {
+        if (currentState == null)
+            return;
         if (MonoManager.INSTANCE == null)
             MonoManager.AutoCreate();
-        if (currentState != null)
-            currentState.Enter();
+        currentState.Enter();
         MonoManager.INSTANCE.AddUpdateAction(currentState.Update);
         MonoManager.INSTANCE.AddFixedUpdateAction(currentState.FixedUpdate);
         MonoManager.INSTANCE.AddLateUpdateAction(currentState.LateUpdate);
@@ -89,9 +88,11 @@ public class StateMachine
 
     private void ExitCurrentState()
     {
-        if (MonoManager.INSTANCE == null)
+        if (currentState == null)
             return;
         currentState.Exit();
+        if (MonoManager.INSTANCE == null)
+            return;
         MonoManager.INSTANCE.RemoveUpdateAction(currentState.Update);
         MonoManager.INSTANCE.RemoveFixedUpdateAction(currentState.FixedUpdate);
         MonoManager.INSTANCE.RemoveLateUpdateAction(currentState.LateUpdate);

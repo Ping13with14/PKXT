@@ -46,7 +46,11 @@ public class PlayerModel : MonoBehaviour
         if (_animator == null)
             _animator = GetComponent<Animator>();
         if (_animator == null)
-            Debug.LogError("未找到 Animator 组件！");
+        {
+            Debug.LogError("未找到 Animator 组件！模型动画功能将不可用");
+            enabled = false;
+            return;
+        }
         // 关闭根运动自动应用，所有位移统一通过cc.Move驱动，避免动画直接改Transform导致与CC错位
         _animator.applyRootMotion = false;
     }
