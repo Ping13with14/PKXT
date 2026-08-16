@@ -1,0 +1,67 @@
+using UnityEngine;
+
+
+/// <summary>
+/// 角色匹配肢体枚举
+/// </summary>
+public enum BodyJointType
+{
+    Root,       // 根骨骼
+    LeftHand,   // 左手
+    RightHand,  // 右手
+    LeftFoot,   // 左脚
+    RightFoot   // 右脚
+}
+
+/// <summary>
+/// 玩家动画状态枚举,用于状态切换时判断
+/// </summary>
+public enum PlayerState
+{
+    Idle, HappyIdle, Runing, FastRun, RuningJump, ClimbObscatle
+}
+
+/// <summary>
+/// 角色模型表现:挂载Animator,直接播放动画
+/// </summary>
+public class PlayerModel : MonoBehaviour
+{
+    //动画控制器
+    public Animator _animator;
+
+
+    //玩家状态
+    public PlayerState state;
+
+    //动画播放时长
+    public float animationDuration;
+
+    //动画根运动每帧位移增量（OnAnimatorMove中捕获，供状态在LateUpdate中使用）
+    [HideInInspector] public Vector3 animDeltaPosition;
+    //动画根运动每帧旋转增量
+    [HideInInspector] public Quaternion animDeltaRotation;
+
+    public void Awake()
+    {
+        if (_animator == null)
+            _animator = GetComponent<Animator>();
+        if (_animator == null)
+            Debug.LogError("未找到 Animator 组件！");
+        // 关闭根运动自动应用，所有位移统一通过cc.Move驱动，避免动画直接改Transform导致与CC错位
+        _animator.applyRootMotion = false;
+    }
+
+    // 在动画更新后捕获根运动数据，此时deltaPosition/deltaRotation为最新值
+    // 执行顺序: Update → 动画系统 → OnAnimatorMove → LateUpdate
+    void OnAnimatorMove()
+    {
+        animDeltaPosition = _animator.deltaPosition;
+        animDeltaRotation = _animator.deltaRotation;
+    }
+
+    public bool IsAnimationEnd()
+    {
+        var stateInfo = _animator.GetCurrentAnimatorStateInfo(0);
+        return !_animator.IsInTransition(0) && stateInfo.normalizedTime >= 1f;
+    }
+}

@@ -1,0 +1,36 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class PlayerStateBase : StateBase
+{
+    
+    protected PlayerController playerController;
+
+    protected PlayerModel playerModel;
+
+    protected ClimbAnimTargetMatch ClimbAnimTargetMatch;
+
+    public override void Init(IStateMachineOwner owner)
+    {
+        playerController = (PlayerController)owner;
+        playerModel = playerController.playerModel;
+        ClimbAnimTargetMatch = playerModel.GetComponent<ClimbAnimTargetMatch>();
+    } 
+
+    public override void Enter()
+    {
+    }
+
+    public override void Update(){ }
+
+    public override void Exit() {
+
+    }
+
+    public override void LateUpdate() { }
+
+    public override void UnInit() { }
+
+    public override void FixedUpdate() { }
+}

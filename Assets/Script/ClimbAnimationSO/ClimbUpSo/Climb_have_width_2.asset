@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3aeae169356b88f4bb0eee21d1973adc, type: 3}
+  m_Name: Climb_have_width_2
+  m_EditorClassIdentifier: 
+  animStateName: HaveWidthClimb2
+  matchStart: 0.1
+  matchEnd: 0.4
+  minHeight: 0.9
+  maxHeight: 2
+  targetJoint: 1
