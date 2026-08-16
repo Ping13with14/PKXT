@@ -17,9 +17,9 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
     //输入系统
     [HideInInspector] public InputSystem inputSystem;
     //玩家移动输入
-    [HideInInspector]public Vector2 inputMoveVec2;
+    [HideInInspector] public Vector2 inputMoveVec2;
     //移动的三维向量
-    [HideInInspector]public Vector3 inputMoveVec3;
+    [HideInInspector] public Vector3 inputMoveVec3;
 
     //状态机
     private StateMachine stateMachine;
@@ -30,7 +30,7 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
     public float AnimationPlayTime = 0;
 
     //地面检测
-    [HideInInspector]public bool isGround;
+    [HideInInspector] public bool isGround;
     //地面层级
     public LayerMask GroundLayer;
     //检测半径

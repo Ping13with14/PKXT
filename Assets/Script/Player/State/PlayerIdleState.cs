@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -34,18 +32,14 @@ public class PlayerIdleState : PlayerStateBase
         }
         #endregion
 
-        #region 检测跳跃
-        if (playerController.inputSystem.Player.Jump.triggered && ClimbAnimTargetMatch.CheckObstacleHeight() <= 0.5)
+        #region 检测跳跃/翻越
+        if (playerController.inputSystem.Player.Jump.triggered)
         {
-            playerController.SwitchState(PlayerState.RunningJump);
-            return;
-        }
-        #endregion
-
-        #region 检测奔跑跳
-        if (playerController.inputSystem.Player.Jump.triggered && ClimbAnimTargetMatch.CheckObstacleHeight() > 0.5)
-        {
-            playerController.SwitchState(PlayerState.ClimbObstacle);
+            // 障碍高度<=0.5为普通跳跃，否则触发翻越
+            if (ClimbAnimTargetMatch.CheckObstacleHeight() <= 0.5)
+                playerController.SwitchState(PlayerState.RunningJump);
+            else
+                playerController.SwitchState(PlayerState.ClimbObstacle);
             return;
         }
         #endregion

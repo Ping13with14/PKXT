@@ -33,9 +33,6 @@ public class PlayerModel : MonoBehaviour
     //玩家状态
     public PlayerState state;
 
-    //动画播放时长
-    public float animationDuration;
-
     //动画根运动每帧位移增量（OnAnimatorMove中捕获，供状态在LateUpdate中使用）
     [HideInInspector] public Vector3 animDeltaPosition;
     //动画根运动每帧旋转增量

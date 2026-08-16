@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -40,10 +38,6 @@ public class PlayerHappyIdleState : PlayerStateBase
             playerController.SwitchState(PlayerState.Running);
             return;
         }
-        #endregion
-
-        #region 检测奔跑跳
-
         #endregion
     }
 }

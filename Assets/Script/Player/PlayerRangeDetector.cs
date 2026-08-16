@@ -7,7 +7,7 @@ using UnityEngine;
 public class PlayerRangeDetector : MonoBehaviour
 {
    
-    [SerializeField] public Vector3 forwardRayOffset = new Vector3(0, 0.25f, 0);
+    public Vector3 forwardRayOffset = new Vector3(0, 0.25f, 0);
     public float forwardRayLength = 0.8f;
     public float heightRayLength = 5;
     public float heightPointTransformOffset = 0.1f;
