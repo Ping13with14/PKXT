@@ -9,13 +9,7 @@ using UnityEngine;
 /// </summary>
 public class PlayerClimbObstacleState : PlayerStateBase
 {
-    [Header("位移节奏（与动画进度的匹配）")]
-    [Tooltip("动画进度达到该值后才开始位移。0=全程同步，0.2=先做前20%动作再移动")]
-    [Range(0f, 0.9f)] public float MoveStartDelay = 0f;
-
-    [Tooltip("位移速度倍率。1=与动画同步走满；>1 让位移提前完成；<1 让位移滞后于动画")]
-    [Range(0.2f, 3f)] public float MoveSpeedMultiplier = 1f;
-
+    // 位移节奏参数在 PlayerController 组件上配置（状态类非MonoBehaviour，无法在Inspector显示字段）
     float ObHeight = 0.0f;
 
     // 位移起点（世界坐标）
@@ -121,17 +115,19 @@ public class PlayerClimbObstacleState : PlayerStateBase
     }
 
     /// <summary>
-    /// 位移进度：在动画进度基础上应用起步延迟与速度倍率。
+    /// 位移进度：在动画进度基础上应用起步延迟与速度倍率（参数来自 PlayerController 组件）。
     /// 延迟后剩余时间按倍率缩放，保证最终都在动画结束时到达终点。
     /// </summary>
     private float GetMoveProgress()
     {
         float animT = GetAnimProgress();
-        if (animT <= MoveStartDelay)
+        float delay = playerController.ClimbMoveStartDelay;
+        float multiplier = playerController.ClimbMoveSpeedMultiplier;
+        if (animT <= delay)
             return 0f;
-        // 将 [MoveStartDelay, 1] 区间映射到 [0, 1]，再乘速度倍率并截断
-        float remapped = (animT - MoveStartDelay) / Mathf.Max(0.001f, 1f - MoveStartDelay);
-        return Mathf.Clamp01(remapped * MoveSpeedMultiplier);
+        // 将 [delay, 1] 区间映射到 [0, 1]，再乘速度倍率并截断
+        float remapped = (animT - delay) / Mathf.Max(0.001f, 1f - delay);
+        return Mathf.Clamp01(remapped * multiplier);
     }
 
     public override void LateUpdate()
