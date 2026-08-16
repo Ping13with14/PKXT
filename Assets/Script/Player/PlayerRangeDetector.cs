@@ -1,8 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// ˫��ݽ����߼��
-/// ����ƫ�������ǰ���� �� ̧��5��λ���»�ȡ���Ŀ���
+/// 双层递进射线检测
+/// 自身偏移起点向前发射 → 抬高5单位向下获取落地目标点
 /// </summary>
 public class PlayerRangeDetector : MonoBehaviour
 {

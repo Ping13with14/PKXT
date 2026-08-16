@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TargetPoint : MonoBehaviour
 {
-    //¸ß¶È
+    //é«˜åº¦
     private float height;
 
     private void Awake()

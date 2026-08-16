@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-//ģ�ͼ�����״̬
+// 模型加速跑状态
 public class PlayerFastRunState : PlayerStateBase
 {
     public override void Enter()
@@ -16,7 +16,7 @@ public class PlayerFastRunState : PlayerStateBase
     {
         base.Update();
 
-        //�����ƶ�����
+        // 处理移动方向
         playerController.MoveDirection();
 
         #region 

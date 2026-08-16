@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// ����Unityԭ��MatchTargetʵ��֫�徫׼Ŀ��ƥ��
+/// 基于Unity原生MatchTarget实现肢体精准目标匹配
 /// </summary>
 public class ClimbAnimTargetMatch : MonoBehaviour
 {
@@ -56,7 +56,7 @@ public class ClimbAnimTargetMatch : MonoBehaviour
             _hasMatched = false;
         }
     }
-    //��ȡ��⵽���ϰ���ĸ߶�
+    //获取检测到的障碍物的高度
     public float CheckObscatleHeight()
     {
         if (_cachedHit.forwardHitFound && _cachedHit.heightHitFound)
@@ -76,7 +76,7 @@ public class ClimbAnimTargetMatch : MonoBehaviour
     }
 
     /// <summary>
-    /// ö��תUnity����ƥ��֫��
+    /// 枚举转换Unity目标匹配肢体
     /// </summary>
     private AvatarTarget JointToAvatarTarget(BodyJointType joint)
     {
@@ -91,7 +91,7 @@ public class ClimbAnimTargetMatch : MonoBehaviour
     }
 
     /// <summary>
-    /// ִ�йٷ�Ŀ��ƥ��
+    /// 执行官方目标匹配
     /// </summary>
     // 执行目标匹配：启用根运动驱动位移，禁用CC胶囊碰撞体避免拽回模型
     public void DoTargetMatch( )

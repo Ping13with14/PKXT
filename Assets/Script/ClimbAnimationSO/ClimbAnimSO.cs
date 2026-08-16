@@ -4,24 +4,24 @@ using UnityEngine;
 
 
 /// <summary>
-/// ÅÊÅÀ¶¯×÷½Å±¾»¯
+/// æ”€çˆ¬åŠ¨ä½œè„šæœ¬åŒ–
 /// </summary>
 /// 
 [CreateAssetMenu(menuName = "ClimbAnimSO/ClimbAnim")]
 public class ClimbAnimSO : ScriptableObject
 {
-    [Tooltip("¶¯»­×´Ì¬»úÄÚ¶¯»­Ãû³Æ")]
+    [Tooltip("åŠ¨ç”»çŠ¶æ€æœºå†…åŠ¨ç”»åç§°")]
     public string animStateName;
 
-    [Tooltip("MatchTargetÆ¥Åä¿ªÊ¼¹éÒ»»¯Ê±¼ä")]
+    [Tooltip("MatchTargetåŒ¹é…å¼€å§‹å½’ä¸€åŒ–æ—¶é—´")]
     [Range(0f, 1f)] public float matchStart;
-    [Tooltip("MatchTargetÆ¥Åä½áÊø¹éÒ»»¯Ê±¼ä")]
+    [Tooltip("MatchTargetåŒ¹é…ç»“æŸå½’ä¸€åŒ–æ—¶é—´")]
     [Range(0f, 1f)] public float matchEnd;
 
-    [Tooltip("¸ß¶È²îÖµÅĞ¶¨ãĞÖµ£¬×÷Îª¶¯»­ÇĞ»»·ÖÖ§Ìõ¼ş")]
+    [Tooltip("é«˜åº¦å·®å€¼åˆ¤å®šé˜ˆå€¼ï¼Œä½œä¸ºåŠ¨ç”»åˆ‡æ¢åˆ†æ”¯æ¡ä»¶")]
     public float minHeight;
     public float maxHeight;
 
-    [Tooltip("Ö¸¶¨½øĞĞÄ¿±êÆ¥ÅäµÄÖ«Ìå")]
+    [Tooltip("æŒ‡å®šè¿›è¡Œç›®æ ‡åŒ¹é…çš„è‚¢ä½“")]
     public BodyJointType targetJoint;
 }

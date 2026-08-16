@@ -28,34 +28,34 @@ public class MonoManager : SingleMonoBase<MonoManager>
 
 
     /// <summary>
-    /// ����Update����
+    /// 添加Update任务
     /// </summary>
-    /// <param name="task">����</param>
+    /// <param name="task">任务</param>
     public void AddUpdateAction(Action task)
     {
         updateAction += task;
     }
     /// <summary>
-    /// �Ƴ�Update����
+    /// 移除Update任务
     /// </summary>
-    /// <param name="task">����</param>
+    /// <param name="task">任务</param>
     public void RemoveUpdateAction(Action task)
     {
         updateAction -= task;
     }
 
     /// <summary>
-    /// ����FixedUpdate����
+    /// 添加FixedUpdate任务
     /// </summary>
-    /// <param name="task">����</param>
+    /// <param name="task">任务</param>
     public void AddFixedUpdateAction(Action task)
     {
         fixedUpdateAction += task;
     }
     /// <summary>
-    /// �Ƴ�FixedUpdate����
+    /// 移除FixedUpdate任务
     /// </summary>
-    /// <param name="task">����</param>
+    /// <param name="task">任务</param>
     public void RemoveFixedUpdateAction(Action task)
     {
         fixedUpdateAction -= task;
@@ -64,7 +64,7 @@ public class MonoManager : SingleMonoBase<MonoManager>
     /// <summary>
     /// 添加LateUpdate任务事件
     /// </summary>
-    /// <param name="task">����</param>
+    /// <param name="task">任务</param>
     public void AddLateUpdateAction(Action task)
     {
         lateUpdateAction += task;
@@ -94,4 +94,3 @@ public class MonoManager : SingleMonoBase<MonoManager>
         lateUpdateAction?.Invoke();
     }
 }
-

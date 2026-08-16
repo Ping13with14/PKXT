@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-//�������״̬�ű�
+// 模型跑步状态脚本
 public class PlayerRuningState : PlayerStateBase
 {
     public override void Enter()
@@ -15,7 +15,7 @@ public class PlayerRuningState : PlayerStateBase
     {
 
         base.Update();
-        //�����ƶ�����
+        // 处理移动方向
         playerController.MoveDirection();
         #region 
         if (playerController.inputMoveVec2 != Vector2.zero && playerController.cc.enabled)
