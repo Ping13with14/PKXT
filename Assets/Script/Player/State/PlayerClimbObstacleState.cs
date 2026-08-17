@@ -22,6 +22,8 @@ public class PlayerClimbObstacleState : PlayerStateBase
 
         // 关闭重力与碰撞检测，位移由根运动驱动
         playerController.SetControl(false);
+        // 提前开启根运动：在播放翻越动画前就生效，避免 DoTargetMatch 开启过晚导致首帧位移丢失
+        playerModel._animator.applyRootMotion = true;
 
         // 厚度区分翻越与攀爬动作
         ClimbAnimSO matchedSO = FindMatchAnimSO(
@@ -37,7 +39,6 @@ public class PlayerClimbObstacleState : PlayerStateBase
             return;
         }
 
-        Debug.Log("播放的动画" + matchedSO.animStateName);
         ClimbAnimTargetMatch.SetCurrentClimbAnimSO(matchedSO);
         playerController.PlayAnimation(matchedSO.animStateName, 0.0f);
     }

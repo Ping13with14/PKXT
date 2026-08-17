@@ -59,7 +59,7 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
         // 优先从模型取CC引用；Awake时序中父物体先于子物体，可能尚未赋值，需兜底
         characterController = playerModel.characterController;
         if (characterController == null)
-            characterController = GetComponentInChildren<CharacterController>();
+            characterController = GetComponent<CharacterController>();
     }
 
     public void Start()
@@ -153,6 +153,9 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
         Vector3 horizontalInput = new Vector3(inputMoveVec3.x, 0, inputMoveVec3.z);
         //四元数×向量计算目标方向
         Vector3 targetDic = Quaternion.Euler(0, cameraAxisY, 0) * horizontalInput;
+        // 零向量保护：输入为零时保持当前朝向，避免 LookRotation 报错
+        if (targetDic.sqrMagnitude < 0.0001f)
+            return;
         Quaternion targetQua = Quaternion.LookRotation(targetDic);
         playerModel.transform.rotation = Quaternion.Slerp(playerModel.transform.rotation,
             targetQua, Time.deltaTime * rotationSpeed);

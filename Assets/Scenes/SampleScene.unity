@@ -3901,6 +3901,7 @@ GameObject:
   - component: {fileID: 1087346602}
   - component: {fileID: 1087346603}
   - component: {fileID: 1087346604}
+  - component: {fileID: 6807115286638681741}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -10210,7 +10211,6 @@ GameObject:
   - component: {fileID: 6807115286638681737}
   - component: {fileID: 6807115286638681739}
   - component: {fileID: 6807115286638681740}
-  - component: {fileID: 6807115286638681741}
   m_Layer: 0
   m_Name: passive_marker_man@Idle
   m_TagString: Untagged
@@ -10302,7 +10302,7 @@ CharacterController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6807115286638681735}
+  m_GameObject: {fileID: 1087346601}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2

@@ -41,12 +41,25 @@ public class ClimbAnimTargetMatch : MonoBehaviour
                 _lastAnimHash = currentHash;
                 _hasMatched = false;
             }
+
             if (!_hasMatched && !_animator.IsInTransition(0) && _cachedHit.forwardHitFound && _cachedHit.heightHitFound)
             {
+                // 只在翻越动画真正开始播放后触发匹配（进度 > 0 且未超过 matchEnd），
+                // 避免过渡期/旧动画上用零或旧目标点锁死动画
+                float curProgress = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+                if (curProgress <= 0f || curProgress > _climbAnimSO.matchEnd)
+                    return;
+
                 // 将匹配目标点设为障碍物顶部碰撞位置（匹配期间不再刷新，避免目标点抖动导致模型被拉飞）
                 _targetPos = _cachedHit.heightHit.point;
                 // 目标点钳制：高度不低于当前模型位置，防止射线穿透障碍打到地面/后方物体时目标点异常
                 _targetPos.y = Mathf.Max(_targetPos.y, transform.position.y + 0.01f);
+
+                // 防御：目标点必须有效（非零且离当前位置合理），否则跳过本帧，等目标点正常后再匹配
+                float distToTarget = Vector3.Distance(_targetPos, transform.position);
+                if (_targetPos.sqrMagnitude < 0.01f || distToTarget > 5f)
+                    return;
+
                 DoTargetMatch();
                 _hasMatched = true;
             }
