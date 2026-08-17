@@ -43,8 +43,10 @@ public class ClimbAnimTargetMatch : MonoBehaviour
             }
             if (!_hasMatched && !_animator.IsInTransition(0) && _cachedHit.forwardHitFound && _cachedHit.heightHitFound)
             {
-                // 将匹配目标点设为障碍物顶部碰撞位置，避免_targetPos默认值Vector3.zero导致瞬移
+                // 将匹配目标点设为障碍物顶部碰撞位置（匹配期间不再刷新，避免目标点抖动导致模型被拉飞）
                 _targetPos = _cachedHit.heightHit.point;
+                // 目标点钳制：高度不低于当前模型位置，防止射线穿透障碍打到地面/后方物体时目标点异常
+                _targetPos.y = Mathf.Max(_targetPos.y, transform.position.y + 0.01f);
                 DoTargetMatch();
                 _hasMatched = true;
             }
@@ -55,12 +57,18 @@ public class ClimbAnimTargetMatch : MonoBehaviour
             _hasMatched = false;
         }
     }
-    //获取检测到的障碍物的高度
+    //获取检测到的障碍物的高度（使用缓存检测结果）
     public float CheckObstacleHeight()
     {
-        if (_cachedHit.forwardHitFound && _cachedHit.heightHitFound)
+        return CheckObstacleHeight(_cachedHit);
+    }
+
+    //获取检测到的障碍物的高度（使用指定检测结果，保证与调用方同快照）
+    public float CheckObstacleHeight(ObstacleHitData hitData)
+    {
+        if (hitData.forwardHitFound && hitData.heightHitFound)
         {
-            return _cachedHit.heightHit.point.y - transform.position.y;
+            return hitData.heightHit.point.y - transform.position.y;
         }
         return 0f;
     }

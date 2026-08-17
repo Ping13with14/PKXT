@@ -21,18 +21,20 @@ public class PlayerClimbObstacleState : PlayerStateBase
     {
         base.Enter();
 
-        ObHeight = ClimbAnimTargetMatch.CheckObstacleHeight();
+        // 统一使用同一次环境检测结果，避免 ObHeight 与 _endPos 来自不同快照
+        var hitData = ClimbAnimTargetMatch.rayCast.ObstacleCheck();
+        ObHeight = ClimbAnimTargetMatch.CheckObstacleHeight(hitData);
 
         // 关闭重力与碰撞检测，CC保持启用，位移由代码匀速驱动
         playerController.SetControl(false);
 
         // 记录位移起点与终点
         _startPos = playerController.transform.position;
-        _endPos = CalcEndPos();
+        _endPos = CalcEndPos(hitData);
 
         //厚度区分翻越与攀爬动作
         ClimbAnimSO matchedSO = FindMatchAnimSO(
-            ClimbAnimTargetMatch.rayCast.ObstacleCheck().widthHitFound
+            hitData.widthHitFound
                 ? ClimbAnimTargetMatch.climbUpAnimSOs
                 : ClimbAnimTargetMatch.climbAnimSOs);
 
@@ -50,22 +52,37 @@ public class PlayerClimbObstacleState : PlayerStateBase
     }
 
     /// <summary>
-    /// 计算位移终点：障碍物顶部命中点，再沿模型前方推出一段距离，确保 CC 越过障碍边缘。
+    /// 计算位移终点：障碍物顶部命中点，再沿模型前方推出一段距离。
+    /// 加入钳制保护：高度不低于起点（防检测到地面/异常值下坠）、水平距离限制在合理范围（防检测到远处物体导致飞出去）。
     /// </summary>
-    private Vector3 CalcEndPos()
+    private Vector3 CalcEndPos(ObstacleHitData hitData)
     {
-        var hitData = ClimbAnimTargetMatch.rayCast.ObstacleCheck();
+        Vector3 start = _startPos;
+        Vector3 forward = playerModel.transform.forward;
+
         if (hitData.heightHitFound)
         {
             Vector3 top = hitData.heightHit.point;
-            // 顶部点 + 前方偏移（跨过障碍物中心），保留障碍高度
-            return new Vector3(
-                top.x + playerModel.transform.forward.x * 0.6f,
-                top.y,
-                top.z + playerModel.transform.forward.z * 0.6f);
+            Vector3 end = top + forward * 0.6f;
+
+            // 钳制1：终点高度不低于起点（射线可能穿透障碍物打到地面/后方物体）
+            end.y = Mathf.Max(end.y, start.y + 0.01f);
+
+            // 钳制2：水平位移限制在 [0.3, 1.2] 之间，防止检测到远处物体时瞬移
+            Vector3 horizontal = end - start;
+            horizontal.y = 0f;
+            float dist = horizontal.magnitude;
+            if (dist < 0.3f)
+                horizontal = horizontal.normalized * 0.3f;
+            else if (dist > 1.2f)
+                horizontal = horizontal.normalized * 1.2f;
+
+            end = start + horizontal + Vector3.up * (end.y - start.y);
+            return end;
         }
-        // 未检测到顶部时退化为仅抬升
-        return playerController.transform.position + Vector3.up * ObHeight;
+
+        // 检测失败时退化为仅小幅抬升（不移动水平位置），避免目标点异常
+        return start + Vector3.up * Mathf.Max(ObHeight, 0.01f);
     }
 
     /// <summary>
