@@ -12,6 +12,9 @@ public class PlayerClimbObstacleState : PlayerStateBase
     // 位移节奏参数在 PlayerController 组件上配置（状态类非MonoBehaviour，无法在Inspector显示字段）
     float ObHeight = 0.0f;
 
+    // CC 原始中心点（翻越时临时抬高，动作完成后恢复）
+    Vector3 _originalCenter;
+
     // 位移起点（世界坐标）
     Vector3 _startPos;
     // 位移终点（世界坐标）：障碍物顶部 + 前方偏移
@@ -24,6 +27,10 @@ public class PlayerClimbObstacleState : PlayerStateBase
         // 统一使用同一次环境检测结果，避免 ObHeight 与 _endPos 来自不同快照
         var hitData = ClimbAnimTargetMatch.rayCast.ObstacleCheck();
         ObHeight = ClimbAnimTargetMatch.CheckObstacleHeight(hitData);
+
+        // 翻越期间临时抬高 CC 中心到障碍物高度，动作完成后恢复
+        _originalCenter = playerController.characterController.center;
+        playerController.characterController.center += Vector3.up * Mathf.Max(ObHeight, 0f);
 
         // 关闭重力与碰撞检测，CC保持启用，位移由代码匀速驱动
         playerController.SetControl(false);
@@ -156,6 +163,8 @@ public class PlayerClimbObstacleState : PlayerStateBase
     public override void Exit()
     {
         base.Exit();
+        // 动作完成，先恢复 CC 中心（减去临时抬高值），再恢复碰撞检测
+        playerController.characterController.center = _originalCenter;
         playerController.SetControl(true);
         playerModel._animator.applyRootMotion = false;
         playerController.characterController.enabled = true;
