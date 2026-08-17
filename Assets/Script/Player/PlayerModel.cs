@@ -44,7 +44,7 @@ public class PlayerModel : MonoBehaviour
     {
         // CC 挂在父物体 Player 上，模型为子物体，需向上查找
         if (characterController == null)
-            characterController = GetComponentInParent<CharacterController>();
+            characterController = GetComponent<CharacterController>();
         if (_animator == null)
             _animator = GetComponent<Animator>();
         if (_animator == null)

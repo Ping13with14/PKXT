@@ -65,7 +65,7 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
         // 优先从模型取CC引用；Awake时序中父物体先于子物体，可能尚未赋值，需兜底
         characterController = playerModel.characterController;
         if (characterController == null)
-            characterController = GetComponent<CharacterController>();
+            characterController = GetComponentInChildren<CharacterController>();
     }
 
     public void Start()

@@ -3901,7 +3901,6 @@ GameObject:
   - component: {fileID: 1087346602}
   - component: {fileID: 1087346603}
   - component: {fileID: 1087346604}
-  - component: {fileID: 1087346605}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -3941,10 +3940,12 @@ MonoBehaviour:
   mainCamera: {fileID: 0}
   RunningSpeed: 5
   FastRunSpeed: 8
-  characterController: {fileID: 1087346605}
+  playerModel: {fileID: 6807115286638681736}
   inputMoveVec2: {x: 0, y: 0}
   inputMoveVec3: {x: 0, y: 0, z: 0}
-  playerModel: {fileID: 6807115286638681736}
+  characterController: {fileID: 6807115286638681741}
+  ClimbMoveStartDelay: 0.205
+  ClimbMoveSpeedMultiplier: 1.3
   AnimationPlayTime: 0
   isGround: 0
   GroundLayer:
@@ -3986,32 +3987,6 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!143 &1087346605
-CharacterController:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1087346601}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Height: 1.75
-  m_Radius: 0.16
-  m_SlopeLimit: 45
-  m_StepOffset: 0.3
-  m_SkinWidth: 0.01
-  m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0.87, z: 0.09}
 --- !u!1 &1099325662
 GameObject:
   m_ObjectHideFlags: 0
@@ -7217,7 +7192,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1730084557}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.11593413, y: 0.000000017616335, z: 0.0000000020561997, w: 0.9932569}
+  m_LocalRotation: {x: -0.11593411, y: -0.000000017616337, z: -0.0000000020561994, w: 0.9932569}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -10237,6 +10212,7 @@ GameObject:
   - component: {fileID: 6807115286638681737}
   - component: {fileID: 6807115286638681739}
   - component: {fileID: 6807115286638681740}
+  - component: {fileID: 6807115286638681741}
   m_Layer: 0
   m_Name: passive_marker_man@Idle
   m_TagString: Untagged
@@ -10257,9 +10233,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _animator: {fileID: 6807115286638681737}
-  characterController: {fileID: 1087346605}
+  characterController: {fileID: 6807115286638681741}
   state: 0
-  animationDuration: 0
   animDeltaPosition: {x: 0, y: 0, z: 0}
   animDeltaRotation: {x: 0, y: 0, z: 0, w: 0}
 --- !u!95 &6807115286638681737
@@ -10323,6 +10298,32 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 268d5ab83ea9c1240996bb7d37e274f2, type: 2}
   - {fileID: 11400000, guid: 4d95c16407a486a43ad5af953b3ec42b, type: 2}
   _targetPos: {x: 0, y: 0, z: 0}
+--- !u!143 &6807115286638681741
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6807115286638681735}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 1.75
+  m_Radius: 0.16
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.01
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0.87, z: 0.09}
 --- !u!4 &6840918527504074568
 Transform:
   m_ObjectHideFlags: 0
