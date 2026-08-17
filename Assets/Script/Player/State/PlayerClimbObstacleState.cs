@@ -12,8 +12,8 @@ public class PlayerClimbObstacleState : PlayerStateBase
     // 位移节奏参数在 PlayerController 组件上配置（状态类非MonoBehaviour，无法在Inspector显示字段）
     float ObHeight = 0.0f;
 
-    // CC 原始中心点（翻越时临时抬高，动作完成后恢复）
-    Vector3 _originalCenter;
+    // CC 中心已加高的标记（在动画约0.6进度时减回）
+    bool _isCenterLifted;
 
     // 位移起点（世界坐标）
     Vector3 _startPos;
@@ -28,8 +28,8 @@ public class PlayerClimbObstacleState : PlayerStateBase
         var hitData = ClimbAnimTargetMatch.rayCast.ObstacleCheck();
         ObHeight = ClimbAnimTargetMatch.CheckObstacleHeight(hitData);
 
-        // 翻越期间临时抬高 CC 中心到障碍物高度，动作完成后恢复
-        _originalCenter = playerController.characterController.center;
+        // 翻越期间临时抬高 CC 中心到障碍物高度，动画约0.6进度时减回
+        _isCenterLifted = true;
         playerController.characterController.center += Vector3.up * Mathf.Max(ObHeight, 0f);
 
         // 关闭重力与碰撞检测，CC保持启用，位移由代码匀速驱动
@@ -118,6 +118,13 @@ public class PlayerClimbObstacleState : PlayerStateBase
         if (delta.sqrMagnitude > 0.0001f)
             playerController.characterController.Move(delta);
 
+        // 动画进度约0.6时把 CC 中心减回原位（简单实现，无需存储原始值）
+        if (_isCenterLifted && GetAnimProgress() >= 0.6f)
+        {
+            playerController.characterController.center -= Vector3.up * Mathf.Max(ObHeight, 0f);
+            _isCenterLifted = false;
+        }
+
         // 动画播放结束，根据输入切换到待机或跑步
         if (playerModel.IsAnimationEnd())
         {
@@ -163,8 +170,7 @@ public class PlayerClimbObstacleState : PlayerStateBase
     public override void Exit()
     {
         base.Exit();
-        // 动作完成，先恢复 CC 中心（减去临时抬高值），再恢复碰撞检测
-        playerController.characterController.center = _originalCenter;
+        // CC 中心已在动画约0.6进度时恢复，这里只恢复控制
         playerController.SetControl(true);
         playerModel._animator.applyRootMotion = false;
         playerController.characterController.enabled = true;
