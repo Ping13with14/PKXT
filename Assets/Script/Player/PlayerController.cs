@@ -26,12 +26,6 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
     //角色控制器
     public CharacterController characterController;
 
-    [Header("翻越位移节奏")]
-    [Tooltip("翻越动画进度达到该值后才开始位移(0=全程同步, 0.2=先做前20%动作再移动)")]
-    [Range(0f, 0.9f)] public float ClimbMoveStartDelay = 0f;
-    [Tooltip("翻越位移速度倍率(1=与动画同步, >1 位移提前完成, <1 位移滞后)")]
-    [Range(0.2f, 3f)] public float ClimbMoveSpeedMultiplier = 1f;
-
     //动画播放时长
     public float AnimationPlayTime = 0;
 

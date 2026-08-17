@@ -42,7 +42,7 @@ public class PlayerModel : MonoBehaviour
 
     public void Awake()
     {
-        // CC 挂在父物体 Player 上，模型为子物体，需向上查找
+        // CC 挂在模型自身（方案B：CC与Animator同物体）
         if (characterController == null)
             characterController = GetComponent<CharacterController>();
         if (_animator == null)
@@ -53,7 +53,8 @@ public class PlayerModel : MonoBehaviour
             enabled = false;
             return;
         }
-        // 关闭根运动自动应用，所有位移统一通过cc.Move驱动，避免动画直接改Transform导致与CC错位
+        // 默认关闭根运动自动应用；翻越/攀爬时由 DoTargetMatch 临时开启，
+        // 位移统一通过 OnAnimatorMove 应用到 CC
         _animator.applyRootMotion = false;
     }
 
@@ -63,6 +64,11 @@ public class PlayerModel : MonoBehaviour
     {
         animDeltaPosition = _animator.deltaPosition;
         animDeltaRotation = _animator.deltaRotation;
+
+        // 方案B：仅当启用根运动时（翻越/攀爬，DoTargetMatch 设置 applyRootMotion=true）
+        // 将动画根运动位移应用到 CC，位移与动作同源；其余状态由代码驱动，避免双重位移
+        if (_animator.applyRootMotion && characterController != null)
+            characterController.Move(animDeltaPosition);
     }
 
     public bool IsAnimationEnd()

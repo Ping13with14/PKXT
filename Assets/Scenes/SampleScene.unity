@@ -3944,8 +3944,6 @@ MonoBehaviour:
   inputMoveVec2: {x: 0, y: 0}
   inputMoveVec3: {x: 0, y: 0, z: 0}
   characterController: {fileID: 6807115286638681741}
-  ClimbMoveStartDelay: 0.205
-  ClimbMoveSpeedMultiplier: 1.3
   AnimationPlayTime: 0
   isGround: 0
   GroundLayer:
