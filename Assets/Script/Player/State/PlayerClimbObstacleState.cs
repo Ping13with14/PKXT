@@ -28,8 +28,8 @@ public class PlayerClimbObstacleState : PlayerStateBase
         // 关闭重力与碰撞检测，CC保持启用，位移由代码匀速驱动
         playerController.SetControl(false);
 
-        // 记录位移起点与终点
-        _startPos = playerController.transform.position;
+        // 记录位移起点与终点（CC 挂在模型上，基准用模型位置而非 Player 根）
+        _startPos = playerModel.transform.position;
         _endPos = CalcEndPos(hitData);
 
         //厚度区分翻越与攀爬动作
@@ -106,7 +106,8 @@ public class PlayerClimbObstacleState : PlayerStateBase
         // 使位移节奏与动画动作匹配（可先做动作后移动，或让位移提前完成）
         float moveT = GetMoveProgress();
         Vector3 targetPos = Vector3.Lerp(_startPos, _endPos, moveT);
-        Vector3 delta = targetPos - playerController.transform.position;
+        // 基准用模型位置（CC 挂在模型上），避免与 Player 根位置错位导致位移叠加
+        Vector3 delta = targetPos - playerModel.transform.position;
         if (delta.sqrMagnitude > 0.0001f)
             playerController.characterController.Move(delta);
 

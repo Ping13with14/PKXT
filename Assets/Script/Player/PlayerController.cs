@@ -177,18 +177,19 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
     }
 
     /// <summary>
-    /// 地面检测：在脚下位置做球形重叠检测，碰触到地面层即为真
+    /// 地面检测：在脚下位置做球形重叠检测，碰触到地面层即为真。
+    /// CC 挂在模型上，检测基准用模型位置。
     /// </summary>
     public bool IsGround()
     {
-        return Physics.CheckSphere(transform.position + GroundTestOffset, CheckRadius, GroundLayer);
+        return Physics.CheckSphere(playerModel.transform.position + GroundTestOffset, CheckRadius, GroundLayer);
     }
 
     //检测绘制方法
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.green;
-        Gizmos.DrawSphere(transform.position + GroundTestOffset, CheckRadius);
+        Gizmos.DrawSphere(playerModel.transform.position + GroundTestOffset, CheckRadius);
     }
 
     private void OnEnable()
