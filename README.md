@@ -11,7 +11,7 @@
 
 | 输入 | 动作 |
 | --- | --- |
-| WASD / 方向键 | 移动（慢跑） |
+| WASD / 方向键 | 移动（慢跑，相机相对：W=远离相机，S=转身朝相机） |
 | Shift | 加速跑（快跑） |
 | 空格 | 跳跃；面对障碍物时自动翻越/攀爬 |
 | 鼠标 | 相机视角（Cinemachine FreeLook） |
@@ -29,10 +29,13 @@ Assets/Script/
 ├── StateMachine/
 │   └── StateMachine.cs      # 有限状态机：状态字典缓存、生命周期驱动
 ├── Player/
-│   ├── PlayerController.cs  # 角色控制：状态切换、输入、移动、重力、地面检测
-│   ├── PlayerModel.cs       # 模型表现：Animator 封装、根运动增量捕获
+│   ├── PlayerController.cs  # 角色控制：状态切换、输入、移动（策略委托）、重力、地面检测（Rigidbody + CapsuleCollider 驱动）
+│   ├── PlayerModel.cs       # 模型表现：Animator 封装、根运动增量捕获/驱动
 │   ├── PlayerRangeDetector.cs # 双层射线障碍检测（前向 + 高度 + 宽度）
 │   ├── TargetPoint.cs       # 相机锁定跟随点
+│   ├── Move/                # 移动策略（开放-封闭原则：新增移动体系=新增子类，不改现有代码）
+│   │   ├── PlayerMoveStrategy.cs         # 移动策略抽象基类
+│   │   └── CameraRelativeMoveStrategy.cs # 相机相对移动（默认：输入即方向，平滑转向）
 │   └── State/               # 各玩家状态
 │       ├── PlayerRunBaseState.cs      # 慢跑/快跑共用基类
 │       ├── PlayerIdleState.cs         # 待机
@@ -55,7 +58,7 @@ Assets/Script/
    - 同时以更远的偏移再发一条宽度射线，判断障碍是否有宽度（区分"翻越"与"攀爬"）
 2. `PlayerClimbObstacleState.Enter()` 按检测到的障碍高度，在 `ClimbAnimSO` 列表中匹配 `minHeight < 高度 < maxHeight` 的动画配置
 3. `ClimbAnimTargetMatch` 在动画播放到配置的 `matchStart ~ matchEnd` 时间段调用 `Animator.MatchTarget`，将指定肢体（手/脚/根骨）精确匹配到障碍物顶部位置
-4. 翻越期间关闭重力与碰撞检测，位移由动画根运动经 `cc.Move` 驱动
+4. 翻越期间关闭重力与碰撞检测（Rigidbody 切换为 kinematic），位移由动画根运动经 `Rigidbody.MovePosition` 驱动
 
 ## 新增翻越/攀爬动作的配置流程
 
@@ -72,6 +75,20 @@ Assets/Script/
 - **翻越无反应**：检查障碍物 Layer 是否在 `PlayerRangeDetector.ObstacleLayer`（默认 Layer 6），且高度落在某个 ClimbAnimSO 的区间内
 - **动画匹配位置不对**：调整对应 ClimbAnimSO 的 `matchStart/matchEnd` 与 `targetJoint`
 - **打包报错**：本项目代码不依赖 UnityEditor 命名空间，可直接 Build Player
+
+## 移动体系与扩展（开放-封闭原则）
+
+移动逻辑基于**策略模式**：`PlayerController.moveStrategy` 持有当前移动策略（默认 `CameraRelativeMoveStrategy`），
+各移动状态只调用 `PlayerController.MoveByInput(speed)`，不关心具体移动方式。
+
+- **对修改封闭**：新增移动体系时，不修改任何现有状态类、控制器方法或已有策略
+- **对扩展开放**：只需
+  1. 新建 `PlayerMoveStrategy` 子类，实现 `Move(float speed)`（读取 `controller.inputMoveVec2`，
+     写入 `controller.playerRigidbody` 水平速度，垂直分量保留给重力）
+  2. 运行时赋值：`playerController.moveStrategy = new MyStrategy(); moveStrategy.Init(playerController);`
+     （或替换 `PlayerController.Awake` 中的默认策略）
+
+示例：坦克式移动、直接位移移动、冲刺等均可作为独立策略接入，互不影响。
 
 ## 开发约定
 

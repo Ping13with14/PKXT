@@ -29,46 +29,41 @@ public class PlayerModel : MonoBehaviour
     //动画控制器
     public Animator _animator;
 
-    //角色控制器
-    public CharacterController characterController;
+    // 玩家刚体，挂在 Player 根物体上
+    public Rigidbody playerRigidbody;
 
     //玩家状态
     public PlayerState state;
 
-    //动画根运动每帧位移增量（OnAnimatorMove中捕获，供状态在LateUpdate中使用）
+    // 动画根运动每帧位移增量，由 PlayerController 在 LateUpdate 中驱动根物体
     [HideInInspector] public Vector3 animDeltaPosition;
-    //动画根运动每帧旋转增量
+    // 动画根运动每帧旋转增量
     [HideInInspector] public Quaternion animDeltaRotation;
 
     public void Awake()
     {
-        // CC 挂在父物体 Player 上，模型为子物体，需向上查找
-        if (characterController == null)
-            characterController = GetComponentInParent<CharacterController>();
+        // Animator 位于 Player 根物体上
         if (_animator == null)
-            _animator = GetComponent<Animator>();
+            _animator = GetComponentInParent<Animator>();
         if (_animator == null)
         {
             Debug.LogError("未找到 Animator 组件！模型动画功能将不可用");
             enabled = false;
             return;
         }
-        // 默认关闭根运动自动应用；翻越/攀爬时由 DoTargetMatch 临时开启，
-        // 位移统一通过 OnAnimatorMove 应用到 CC
+        // 默认关闭根运动自动应用；翻越/攀爬时由状态临时开启，
+        // 位移统一由 PlayerController 驱动物理根物体
         _animator.applyRootMotion = false;
     }
 
-    // 在动画更新后捕获根运动数据，此时deltaPosition/deltaRotation为最新值
-    // 执行顺序: Update → 动画系统 → OnAnimatorMove → LateUpdate
     void OnAnimatorMove()
     {
         animDeltaPosition = _animator.deltaPosition;
         animDeltaRotation = _animator.deltaRotation;
 
-        // 方案B：翻越/攀爬期间（applyRootMotion=true）将根运动位移应用到 CC，
-        // 位移与动作同源；其余状态由代码驱动，避免双重位移
-        if (_animator.applyRootMotion && characterController != null)
-            characterController.Move(animDeltaPosition);
+        // kinematic 时（翻越状态）Unity 不会自动应用根运动，需手动驱动刚体
+        if (playerRigidbody != null && playerRigidbody.isKinematic)
+            playerRigidbody.MovePosition(playerRigidbody.position + animDeltaPosition);
     }
 
     public bool IsAnimationEnd()

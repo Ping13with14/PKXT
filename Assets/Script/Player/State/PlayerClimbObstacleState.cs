@@ -50,7 +50,7 @@ public class PlayerClimbObstacleState : PlayerStateBase
     {
         foreach (var item in animSOs)
         {
-            if (ObHeight > item.minHeight && ObHeight < item.maxHeight)
+            if (ObHeight >= item.minHeight && ObHeight < item.maxHeight)
                 return item;
         }
         return null;
@@ -73,8 +73,8 @@ public class PlayerClimbObstacleState : PlayerStateBase
     public override void Exit()
     {
         base.Exit();
+        ClimbAnimTargetMatch.ClearCurrentClimbAnimSO();
         playerController.SetControl(true);
         playerModel._animator.applyRootMotion = false;
-        playerController.characterController.enabled = true;
     }
 }

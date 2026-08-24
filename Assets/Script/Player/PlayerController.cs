@@ -13,18 +13,21 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
     //拿到模型
     public PlayerModel playerModel;
 
+    // 移动策略（开放-封闭：新增移动体系时新建 PlayerMoveStrategy 子类并赋值，不改现有代码）
+    public PlayerMoveStrategy moveStrategy;
+
     //输入系统
     [HideInInspector] public InputSystem inputSystem;
     //玩家移动输入
     [HideInInspector] public Vector2 inputMoveVec2;
-    //移动的三维向量
-    [HideInInspector] public Vector3 inputMoveVec3;
 
     //状态机
     private StateMachine stateMachine;
 
-    //角色控制器
-    public CharacterController characterController;
+    // 玩家刚体，负责移动、重力和碰撞响应
+    public Rigidbody playerRigidbody;
+    // 根物体上的胶囊碰撞体，用于以脚底位置进行地面检测
+    public CapsuleCollider playerCollider;
 
     //动画播放时长
     public float AnimationPlayTime = 0;
@@ -33,33 +36,53 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
     [HideInInspector] public bool isGround;
     //地面层级
     public LayerMask GroundLayer;
-    //检测半径
-    public float CheckRadius = 0.3f;
+    // 地面检测半径只作为脚底缓冲，不再从根物体中心开始检测
+    public float CheckRadius = 0.08f;
     //检测点偏转值
     public Vector3 GroundTestOffset;
 
-    //重力加速度
+    // 重力加速度，由脚本手动施加给刚体
     public float gravity = -9.8f;
     //垂直方向累计速度
     [HideInInspector] public float verticalVelocity = 0f;
     //重力开关
     public bool hasGravity = true;
 
-    //转向速度
-    public float rotationSpeed = 8f;
+    // 转向角速度（度/秒）：朝向变化的最大角速度，越大越跟手，越小越柔和
+    public float rotationSpeed = 360f;
 
     protected override void Awake()
     {
         base.Awake();
+        if (INSTANCE != this)
+            return;
 
-        stateMachine = new StateMachine(this);
-        //实例化输入系统
+        // 输入系统必须在 Start 和所有状态更新之前创建并启用
         inputSystem = new InputSystem();
+        inputSystem.Enable();
         mainCamera = Camera.main;
-        // 优先从模型取CC引用；Awake时序中父物体先于子物体，可能尚未赋值，需兜底
-        characterController = playerModel.characterController;
-        if (characterController == null)
-            characterController = GetComponent<CharacterController>();
+        stateMachine = new StateMachine(this);
+
+        // Animator 与刚体统一挂在 Player 根物体上，根运动会直接移动物理主体
+        if (playerRigidbody == null)
+            playerRigidbody = GetComponent<Rigidbody>();
+        if (playerRigidbody == null && playerModel != null)
+            playerRigidbody = playerModel.GetComponentInParent<Rigidbody>();
+        if (playerCollider == null)
+            playerCollider = GetComponent<CapsuleCollider>();
+
+        if (playerRigidbody != null)
+        {
+            // 使用脚本中的 gravity 数值，关闭 Rigidbody 默认重力避免重复施加
+            playerRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+            playerRigidbody.useGravity = false;
+            playerRigidbody.isKinematic = false;
+        }
+
+        // 初始化移动策略：未指定时使用默认的相机相对移动
+        if (moveStrategy == null)
+            moveStrategy = new CameraRelativeMoveStrategy();
+        moveStrategy.Init(this);
     }
 
     public void Start()
@@ -111,92 +134,173 @@ public class PlayerController : SingleMonoBase<PlayerController>, IStateMachineO
         AnimationPlayTime = 0;
     }
 
-
-    // 地面检测与重力逻辑放在FixedUpdate中，以固定物理步长执行，确保在Update前完成
+    // 固定物理步长只更新重力和地面状态，水平移动由各状态委托移动策略写入刚体速度
     public void FixedUpdate()
     {
-        if (!hasGravity) return;
+        if (playerRigidbody == null)
+            return;
 
-        // 重力常量每帧累加，不依赖任何地面检测结果
-        verticalVelocity += gravity * Time.fixedDeltaTime;
-        // 每帧Y方向应用重力位移，CC碰撞保证模型真实触碰地面
-        characterController.Move(Vector3.up * verticalVelocity * Time.fixedDeltaTime);
-        // 基于CC真实碰撞结果归零垂直速度，避免球体检测半径导致提前悬空
-        if (characterController.isGrounded)
+        // 翻越期间刚体是运动学刚体，只能由 MovePosition 驱动，不能写入 velocity
+        if (!playerRigidbody.isKinematic)
+        {
+            if (hasGravity)
+            {
+                // 刚体不使用 Unity 默认重力时，由脚本手动累计重力
+                verticalVelocity += gravity * Time.fixedDeltaTime;
+                Vector3 gravityVelocity = playerRigidbody.velocity;
+                gravityVelocity.y = verticalVelocity;
+                playerRigidbody.velocity = gravityVelocity;
+            }
+            else
+            {
+                verticalVelocity = 0f;
+                Vector3 velocityWithoutGravity = playerRigidbody.velocity;
+                velocityWithoutGravity.y = 0f;
+                playerRigidbody.velocity = velocityWithoutGravity;
+            }
+        }
+        else
+        {
             verticalVelocity = 0f;
-        // 球体地面检测仅用于状态切换，不与重力逻辑绑定
+        }
+
         isGround = IsGround();
+        if (!playerRigidbody.isKinematic && isGround && playerRigidbody.velocity.y < 0f)
+        {
+            Vector3 groundedVelocity = playerRigidbody.velocity;
+            groundedVelocity.y = 0f;
+            playerRigidbody.velocity = groundedVelocity;
+            verticalVelocity = 0f;
+        }
+        else
+        {
+            verticalVelocity = playerRigidbody.velocity.y;
+        }
     }
 
     public void Update()
-    {   //动画播放时长
+    {
+        //动画播放时长
         AnimationPlayTime += Time.deltaTime;
         MoveInput();
     }
 
-    //输入移动信息
+    //读取玩家移动输入
     public void MoveInput()
     {
-        //二维向量输入
+        // 输入系统在 Awake 中初始化；为空说明当前 PlayerController 未完成初始化
         inputMoveVec2 = inputSystem.Player.Move.ReadValue<Vector2>().normalized;
-        //三维向量转化
-        inputMoveVec3 = new Vector3(inputMoveVec2.x, verticalVelocity, inputMoveVec2.y);
-    }
-
-    //处理移动方向
-    public void MoveDirection()
-    {
-        #region 处理移动方向
-        //获取相机旋转轴Y
-        float cameraAxisY = mainCamera.transform.rotation.eulerAngles.y;
-        //仅使用水平输入计算朝向，忽略垂直速度分量
-        Vector3 horizontalInput = new Vector3(inputMoveVec3.x, 0, inputMoveVec3.z);
-        //四元数×向量计算目标方向
-        Vector3 targetDic = Quaternion.Euler(0, cameraAxisY, 0) * horizontalInput;
-        // 零向量保护：输入为零时保持当前朝向，避免 LookRotation 报错
-        if (targetDic.sqrMagnitude < 0.0001f)
-            return;
-        Quaternion targetQua = Quaternion.LookRotation(targetDic);
-        playerModel.transform.rotation = Quaternion.Slerp(playerModel.transform.rotation,
-            targetQua, Time.deltaTime * rotationSpeed);
-        #endregion
     }
 
     /// <summary>
-    /// 设置模型控制：关闭时保留CC启用，以便cc.Move跟随动画位移
+    /// 执行移动：委托给当前移动策略（moveStrategy）。
+    /// 由各移动状态每帧调用；新增移动体系时无需改动状态与控制器，仅替换策略实例。
     /// </summary>
-    /// <param name="isControl"></param>
+    public void MoveByInput(float speed)
+    {
+        if (moveStrategy != null)
+            moveStrategy.Move(speed);
+    }
+
+    /// <summary>
+    /// 设置玩家物理控制状态。
+    /// 翻越期间关闭刚体重力和碰撞响应，根运动仍通过刚体移动。
+    /// </summary>
     public void SetControl(bool isControl)
     {
         hasGravity = isControl;
-        characterController.detectCollisions = isControl;
-        // CC始终保持启用，动画位移通过cc.Move驱动，不直接操作transform
+        if (playerRigidbody == null)
+            return;
+
+        // 使用脚本中的 gravity 数值，关闭 Rigidbody 默认重力避免重复施加
+        playerRigidbody.useGravity = false;
+        if (!isControl)
+        {
+            // 切换为运动学刚体前先清理速度，避免恢复动态刚体时继承旧速度
+            playerRigidbody.velocity = Vector3.zero;
+            playerRigidbody.angularVelocity = Vector3.zero;
+        }
+        playerRigidbody.isKinematic = !isControl;
+        // 翻越期间关闭碰撞响应，结束后恢复碰撞
+        playerRigidbody.detectCollisions = isControl;
     }
 
     /// <summary>
-    /// 地面检测：在脚下位置做球形重叠检测，碰触到地面层即为真。
-    /// CC 挂在模型上，检测基准用模型位置。
+    /// 使用刚体的水平速度驱动玩家移动（跳跃等状态复用）。
     /// </summary>
+    public void SetHorizontalVelocity(Vector3 horizontalVelocity)
+    {
+        if (playerRigidbody == null || playerRigidbody.isKinematic)
+            return;
+
+        Vector3 velocity = playerRigidbody.velocity;
+        velocity.x = horizontalVelocity.x;
+        velocity.z = horizontalVelocity.z;
+        playerRigidbody.velocity = velocity;
+    }
+
+    // 地面检测：使用胶囊碰撞体底部附近的小球，避免以根物体中心检测造成悬空感
     public bool IsGround()
     {
-        return Physics.CheckSphere(playerModel.transform.position + GroundTestOffset, CheckRadius, GroundLayer);
+        if (playerCollider == null)
+            return Physics.CheckSphere(transform.position + GroundTestOffset, CheckRadius, GroundLayer);
+
+        Vector3 worldCenter = playerCollider.transform.TransformPoint(playerCollider.center);
+        float worldRadius = playerCollider.radius * Mathf.Max(
+            playerCollider.transform.lossyScale.x,
+            playerCollider.transform.lossyScale.z);
+        float worldHalfHeight = Mathf.Max(
+            playerCollider.height * 0.5f * playerCollider.transform.lossyScale.y,
+            worldRadius);
+        // 脚底 = 胶囊体最低点（center - halfHeight）；检查球放在脚底，半径仅作缓冲
+        Vector3 feetPosition = worldCenter + Vector3.down * worldHalfHeight;
+        return Physics.CheckSphere(feetPosition + GroundTestOffset, CheckRadius, GroundLayer);
     }
 
     //检测绘制方法
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.green;
-        Gizmos.DrawSphere(playerModel.transform.position + GroundTestOffset, CheckRadius);
+        Gizmos.DrawSphere(GetGroundCheckPosition(), CheckRadius);
+    }
+
+    private Vector3 GetGroundCheckPosition()
+    {
+        if (playerCollider == null)
+            return transform.position + GroundTestOffset;
+
+        Vector3 worldCenter = playerCollider.transform.TransformPoint(playerCollider.center);
+        float worldRadius = playerCollider.radius * Mathf.Max(
+            playerCollider.transform.lossyScale.x,
+            playerCollider.transform.lossyScale.z);
+        float worldHalfHeight = Mathf.Max(
+            playerCollider.height * 0.5f * playerCollider.transform.lossyScale.y,
+            worldRadius);
+        // 与 IsGround 保持一致：脚底 = 胶囊体最低点
+        return worldCenter + Vector3.down * worldHalfHeight + GroundTestOffset;
     }
 
     private void OnEnable()
     {
-        //启动输入系统
-        inputSystem.Enable();
+        if (inputSystem != null)
+            inputSystem.Enable();
     }
     private void OnDisable()
     {
-        //关闭事件监听
-        inputSystem.Disable();
+        if (inputSystem != null)
+            inputSystem.Disable();
+    }
+
+    protected override void OnDestroy()
+    {
+        if (stateMachine != null)
+            stateMachine.Clear();
+        if (inputSystem != null)
+        {
+            inputSystem.Disable();
+            inputSystem.Dispose();
+            inputSystem = null;
+        }
+        base.OnDestroy();
     }
 }

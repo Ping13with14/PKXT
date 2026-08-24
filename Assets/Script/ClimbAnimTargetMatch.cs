@@ -15,7 +15,8 @@ public class ClimbAnimTargetMatch : MonoBehaviour
 
 
     private Animator _animator;
-    private CharacterController _cc;
+    // 玩家刚体，负责翻越期间的物理移动
+    private Rigidbody _playerRigidbody;
     private ClimbAnimSO _climbAnimSO;
     private int _lastAnimHash;
     private ObstacleHitData _cachedHit;
@@ -24,14 +25,20 @@ public class ClimbAnimTargetMatch : MonoBehaviour
 
     private void Awake()
     {
-        _animator = GetComponent<Animator>();
-        _cc = GetComponentInParent<CharacterController>();
+        _animator = GetComponentInParent<Animator>();
+        if (_animator == null)
+            _animator = GetComponent<Animator>();
+        _playerRigidbody = GetComponentInParent<Rigidbody>();
+        if (rayCast == null)
+            rayCast = GetComponent<PlayerRangeDetector>();
     }
 
     private void Update()
     {
+        if (rayCast == null || _animator == null)
+            return;
+
         _cachedHit = rayCast.ObstacleCheck();
-        //Debug.Log(rayCast.ObstacleCheck().heightHit.point);
         //CheckCurrentPlayingAnim();
         if (_climbAnimSO != null)
         {
@@ -81,7 +88,7 @@ public class ClimbAnimTargetMatch : MonoBehaviour
     {
         if (hitData.forwardHitFound && hitData.heightHitFound)
         {
-            return hitData.heightHit.point.y - transform.position.y;
+            return hitData.heightHit.point.y - _animator.transform.position.y;
         }
         return 0f;
     }
@@ -93,6 +100,13 @@ public class ClimbAnimTargetMatch : MonoBehaviour
     {
         _climbAnimSO = so;
         _hasMatched = false;
+    }
+
+    public void ClearCurrentClimbAnimSO()
+    {
+        _climbAnimSO = null;
+        _hasMatched = false;
+        _lastAnimHash = 0;
     }
 
     /// <summary>
@@ -117,14 +131,15 @@ public class ClimbAnimTargetMatch : MonoBehaviour
     public void DoTargetMatch( )
     {
         _animator.applyRootMotion = true;
-        // 仅关闭碰撞检测，保持 CC 启用但避免胶囊体拽回模型；LateUpdate 检测 applyRootMotion 跳过 cc.Move 防止叠加
-        if (_cc != null) _cc.detectCollisions = false;
+        // 关闭刚体碰撞响应，避免 MatchTarget 调整动画时被碰撞体阻挡
+        if (_playerRigidbody != null)
+            _playerRigidbody.detectCollisions = false;
 
         AvatarTarget avatarTarget = JointToAvatarTarget(_climbAnimSO.targetJoint);
 
         _animator.MatchTarget(
             _targetPos,
-            transform.rotation,
+            _animator.transform.rotation,
             avatarTarget,
             new MatchTargetWeightMask(Vector3.one, 0f),
             _climbAnimSO.matchStart,

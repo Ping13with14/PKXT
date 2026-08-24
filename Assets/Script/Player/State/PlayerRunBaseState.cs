@@ -22,16 +22,8 @@ public abstract class PlayerRunBaseState : PlayerStateBase
     public override void Update()
     {
         base.Update();
-        // 处理移动方向
-        playerController.MoveDirection();
-
-        #region 水平移动
-        if (playerController.inputMoveVec2 != Vector2.zero && playerController.characterController.enabled)
-        {
-            // 水平移动，重力位移由FixedUpdate集中处理
-            playerController.characterController.Move(playerModel.transform.forward * MoveSpeed * Time.deltaTime);
-        }
-        #endregion
+        // 移动：委托给 PlayerController 当前移动策略（相机相对，输入即方向即移动）
+        playerController.MoveByInput(MoveSpeed);
 
         #region 停止输入
         if (playerController.inputMoveVec2 == Vector2.zero)
@@ -49,10 +41,14 @@ public abstract class PlayerRunBaseState : PlayerStateBase
         }
         #endregion
 
-        #region 检测奔跑跳跃
+        #region 检测奔跑跳跃/翻越
         if (playerController.inputSystem.Player.Jump.triggered)
         {
-            playerController.SwitchState(PlayerState.RunningJump);
+            // 与待机状态一致：前方障碍高度 > 0.5 时触发翻越，否则普通跳跃
+            if (ClimbAnimTargetMatch == null || ClimbAnimTargetMatch.CheckObstacleHeight() <= 0.5f)
+                playerController.SwitchState(PlayerState.RunningJump);
+            else
+                playerController.SwitchState(PlayerState.ClimbObstacle);
             return;
         }
         #endregion

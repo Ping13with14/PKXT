@@ -13,7 +13,7 @@ public class PlayerStateBase : StateBase
     {
         playerController = (PlayerController)owner;
         playerModel = playerController.playerModel;
-        ClimbAnimTargetMatch = playerModel.GetComponent<ClimbAnimTargetMatch>();
+        ClimbAnimTargetMatch = playerController.GetComponentInChildren<ClimbAnimTargetMatch>(true);
     } 
 
     public override void Enter()

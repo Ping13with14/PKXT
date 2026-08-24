@@ -12,8 +12,14 @@ public class PlayerRunningJumpState : PlayerStateBase
     public override void Enter()
     {
         base.Enter();
-        // 起跳时赋予初始垂直速度，后续由重力累计每帧递减
+        // 起跳时赋予初始垂直速度，FixedUpdate 会继续累计脚本重力
         playerController.verticalVelocity = jumpForce;
+        if (playerController.playerRigidbody != null)
+        {
+            Vector3 velocity = playerController.playerRigidbody.velocity;
+            velocity.y = jumpForce;
+            playerController.playerRigidbody.velocity = velocity;
+        }
         playerController.PlayAnimation("Running Jump");
     }
 
@@ -39,11 +45,9 @@ public class PlayerRunningJumpState : PlayerStateBase
     public override void LateUpdate()
     {
         base.LateUpdate();
-        if (!playerController.characterController.enabled) return;
 
-        Vector3 movement = playerModel.transform.forward * jumpDis * Time.deltaTime;
-        // 加入动画根运动 Y 分量，使 CC 跟随模型的纵向位移
-        movement.y += playerModel.animDeltaPosition.y;
-        playerController.characterController.Move(movement);
+        // 跳跃期间保持向前速度，垂直方向交给刚体重力处理
+        playerController.SetHorizontalVelocity(
+            playerModel.transform.forward * jumpDis);
     }
 }

@@ -24,7 +24,7 @@ public class PlayerIdleState : PlayerStateBase
 
         #endregion
 
-        #region 监听奔跑
+        #region 监听移动（任何方向输入都进入奔跑：输入方向即移动方向）
         if (playerController.inputMoveVec2 != Vector2.zero)
         {
             playerController.SwitchState(PlayerState.Running);
@@ -36,7 +36,7 @@ public class PlayerIdleState : PlayerStateBase
         if (playerController.inputSystem.Player.Jump.triggered)
         {
             // 障碍高度<=0.5为普通跳跃，否则触发翻越
-            if (ClimbAnimTargetMatch.CheckObstacleHeight() <= 0.5)
+            if (ClimbAnimTargetMatch == null || ClimbAnimTargetMatch.CheckObstacleHeight() <= 0.5f)
                 playerController.SwitchState(PlayerState.RunningJump);
             else
                 playerController.SwitchState(PlayerState.ClimbObstacle);
