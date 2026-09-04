@@ -30,7 +30,9 @@ Assets/Script/
 │   └── StateMachine.cs      # 有限状态机：状态字典缓存、生命周期驱动
 ├── Player/
 │   ├── PlayerController.cs  # 角色控制：状态切换、输入、移动（策略委托）、重力、地面检测（Rigidbody + CapsuleCollider 驱动）
-│   ├── PlayerModel.cs       # 模型表现：Animator 封装、根运动增量捕获/驱动
+│   ├── PlayerModel.cs       # 模型表现：Animator 封装
+│   ├── PlayerFootIK.cs      # 脚步 IK（OnAnimatorIK）：双脚贴合地面/斜坡，跳跃/翻越自动退出（挂在 Player 根物体）
+│   ├── PlayerRootMotionDriver.cs # 根运动显式驱动：kinematic 时按模型朝向把根运动位移应用到刚体（只位移不旋转，挂在 Player 根物体）
 │   ├── PlayerRangeDetector.cs # 双层射线障碍检测（前向 + 高度 + 宽度）
 │   ├── TargetPoint.cs       # 相机锁定跟随点
 │   ├── Move/                # 移动策略（开放-封闭原则：新增移动体系=新增子类，不改现有代码）
@@ -57,8 +59,9 @@ Assets/Script/
    - 前向射线命中障碍物后，在命中点上方 5 单位向下发射高度射线，获得障碍物顶部落点
    - 同时以更远的偏移再发一条宽度射线，判断障碍是否有宽度（区分"翻越"与"攀爬"）
 2. `PlayerClimbObstacleState.Enter()` 按检测到的障碍高度，在 `ClimbAnimSO` 列表中匹配 `minHeight < 高度 < maxHeight` 的动画配置
-3. `ClimbAnimTargetMatch` 在动画播放到配置的 `matchStart ~ matchEnd` 时间段调用 `Animator.MatchTarget`，将指定肢体（手/脚/根骨）精确匹配到障碍物顶部位置
-4. 翻越期间关闭重力与碰撞检测（Rigidbody 切换为 kinematic），位移由动画根运动经 `Rigidbody.MovePosition` 驱动
+3. `ClimbAnimTargetMatch` 在动画播放到配置的 `matchStart ~ matchEnd` 时间段调用 `Animator.MatchTarget`，将指定肢体（手/脚/根骨）精确匹配到障碍物顶部（目标点优先用碰撞体几何推导的顶面前缘点，不受射线偏移参数影响）
+4. 翻越期间关闭重力与碰撞检测（Rigidbody 切换为 kinematic），水平位移由动画根运动经 `PlayerRootMotionDriver`（Player 根物体，与 Animator 同物体）`MovePosition` 驱动（只应用位移、不应用旋转）；进入翻越时朝向锁定为障碍物表面法线反方向，根运动增量旋转到锁定朝向，任意方向翻越方向一致
+5. **高度适配 + 防穿模**：`PlayerRootMotionDriver` 提供两种位移覆盖——**翻越**丢弃根运动 Y（XZ 保留根运动），Y 按动画进度先升到"障碍顶+余量"再落回地面；**攀爬**用两段式轨迹（`overridePosition`）：阶段1 XZ 锁在障碍前表面外侧**贴墙上升**（身体不穿墙），阶段2 前移到障碍中心顶面，使上升幅度/肢体落点/穿模都与实际障碍几何精确匹配（可调：`PlayerRootMotionDriver.vaultClearance`、`climbStandOffset`、`climbStandoff`、`climbOverProgress`，`PlayerRangeDetector.topEdgeInset`）
 
 ## 新增翻越/攀爬动作的配置流程
 
@@ -73,6 +76,7 @@ Assets/Script/
 ## 常见问题
 
 - **翻越无反应**：检查障碍物 Layer 是否在 `PlayerRangeDetector.ObstacleLayer`（默认 Layer 6），且高度落在某个 ClimbAnimSO 的区间内
+- **翻越时根物体/Collider 不动（拖地）**：攀爬 FBX 的 Animation 导入设置里 **Root Transform Position XZ/Y 的 "Bake Into Pose" 必须取消勾选**（meta 中 `keepOriginalPositionXZ/Y: 1`），否则剪辑变成"原地动画"，没有位置根运动驱动根物体；Root Transform Rotation 的 "Bake Into Pose" 应勾选（`keepOriginalOrientation: 0`），避免根旋转曲线造成疯狂旋转
 - **动画匹配位置不对**：调整对应 ClimbAnimSO 的 `matchStart/matchEnd` 与 `targetJoint`
 - **打包报错**：本项目代码不依赖 UnityEditor 命名空间，可直接 Build Player
 
@@ -95,3 +99,11 @@ Assets/Script/
 - 所有 C# 源码统一 UTF-8（无 BOM）编码
 - 状态类继承 `PlayerStateBase`，需要跑动逻辑的继承 `PlayerRunBaseState`
 - 单例通过 `SingleMonoBase<T>` 实现，禁止手动重复挂载
+- 跳跃/翻越/攀爬等动作结束后**一律先回 Idle**（清零水平速度），再按输入进入奔跑等状态，避免动作结束后的残留位移/惯性滑行
+
+## 脚步 IK（Foot IK）
+
+- 组件 `PlayerFootIK` 挂在 **Player 根物体**（与 Animator 同物体，`OnAnimatorIK` 只在该物体上回调）
+- 待机/慢跑/快跑时双脚从脚踝向下射线检测地面，把脚吸附到地面并贴合斜坡法线（`footGroundOffset` 为脚踝到脚底的高度差，按模型微调）
+- 摆动脚保护：脚离地超过 `maxLiftCorrection` 时不吸附；跳跃/翻越（空中、kinematic）权重自动平滑退出
+- 检测层级默认跟随 `PlayerController.GroundLayer`（Ground + Obstacle），可单独指定

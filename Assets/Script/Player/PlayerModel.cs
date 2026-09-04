@@ -35,11 +35,6 @@ public class PlayerModel : MonoBehaviour
     //玩家状态
     public PlayerState state;
 
-    // 动画根运动每帧位移增量，由 PlayerController 在 LateUpdate 中驱动根物体
-    [HideInInspector] public Vector3 animDeltaPosition;
-    // 动画根运动每帧旋转增量
-    [HideInInspector] public Quaternion animDeltaRotation;
-
     public void Awake()
     {
         // Animator 位于 Player 根物体上
@@ -52,18 +47,8 @@ public class PlayerModel : MonoBehaviour
             return;
         }
         // 默认关闭根运动自动应用；翻越/攀爬时由状态临时开启，
-        // 位移统一由 PlayerController 驱动物理根物体
+        // 位移由 PlayerRootMotionDriver（Player 根物体上，与 Animator 同物体）显式驱动
         _animator.applyRootMotion = false;
-    }
-
-    void OnAnimatorMove()
-    {
-        animDeltaPosition = _animator.deltaPosition;
-        animDeltaRotation = _animator.deltaRotation;
-
-        // kinematic 时（翻越状态）Unity 不会自动应用根运动，需手动驱动刚体
-        if (playerRigidbody != null && playerRigidbody.isKinematic)
-            playerRigidbody.MovePosition(playerRigidbody.position + animDeltaPosition);
     }
 
     public bool IsAnimationEnd()

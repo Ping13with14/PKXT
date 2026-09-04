@@ -23,6 +23,12 @@ public class ClimbAnimTargetMatch : MonoBehaviour
     public Vector3 _targetPos;
     private bool _hasMatched;
 
+    // 翻越开始时的障碍检测快照：
+    // 进入翻越状态瞬间锁定，避免匹配窗口内实时射线失效（角色贴近/越过障碍后前向射线落空）
+    // 导致 MatchTarget 不触发、肢体不贴合障碍的"匹配失灵/穿模"问题。
+    private ObstacleHitData _climbHitData;
+    private bool _hasClimbHitSnapshot;
+
     private void Awake()
     {
         _animator = GetComponentInParent<Animator>();
@@ -49,7 +55,10 @@ public class ClimbAnimTargetMatch : MonoBehaviour
                 _hasMatched = false;
             }
 
-            if (!_hasMatched && !_animator.IsInTransition(0) && _cachedHit.forwardHitFound && _cachedHit.heightHitFound)
+            // 匹配条件优先使用进入翻越时的检测快照，快照缺失时回退到实时检测
+            ObstacleHitData matchHit = _hasClimbHitSnapshot ? _climbHitData : _cachedHit;
+            if (!_hasMatched && !_animator.IsInTransition(0)
+                && matchHit.forwardHitFound && matchHit.heightHitFound)
             {
                 // 只在翻越动画真正开始播放后触发匹配（进度 > 0 且未超过 matchEnd），
                 // 避免过渡期/旧动画上用零或旧目标点锁死动画
@@ -57,8 +66,15 @@ public class ClimbAnimTargetMatch : MonoBehaviour
                 if (curProgress <= 0f || curProgress > _climbAnimSO.matchEnd)
                     return;
 
-                // 将匹配目标点设为障碍物顶部碰撞位置（匹配期间不再刷新，避免目标点抖动导致模型被拉飞）
-                _targetPos = _cachedHit.heightHit.point;
+                // 将匹配目标点设为障碍物顶部：优先用碰撞体几何推导的顶面前缘点
+                // （肢体抓/踩在顶面前缘，更贴合实际障碍，不受射线偏移参数影响），
+                // 几何无效时回退高度射线命中点。
+                // 注意：不能改用宽度射线命中点（widthHit，前表面向里 1.0m）——
+                // 那会把肢体和身体拽到顶面深处（滑动到 1.0m 处）。
+                // 匹配期间不再刷新，避免目标点抖动导致模型被拉飞
+                _targetPos = matchHit.geometryValid
+                    ? matchHit.topFrontEdgePoint
+                    : matchHit.heightHit.point;
                 // 目标点钳制：高度不低于当前模型位置，防止射线穿透障碍打到地面/后方物体时目标点异常
                 _targetPos.y = Mathf.Max(_targetPos.y, transform.position.y + 0.01f);
 
@@ -94,10 +110,24 @@ public class ClimbAnimTargetMatch : MonoBehaviour
     }
 
 
-    
+
     // 由状态进入时传入已匹配的ClimbAnimSO，供后续MatchTarget使用
     public void SetCurrentClimbAnimSO(ClimbAnimSO so)
     {
+        // 无快照版本：保持旧行为，实时检测作为匹配依据
+        _hasClimbHitSnapshot = false;
+        _climbAnimSO = so;
+        _hasMatched = false;
+    }
+
+    /// <summary>
+    /// 进入翻越时传入动作配置与同一次的障碍检测快照，
+    /// 匹配目标点与触发条件全部基于该快照，杜绝匹配窗口内实时射线失效。
+    /// </summary>
+    public void SetCurrentClimbAnimSO(ClimbAnimSO so, ObstacleHitData hitData)
+    {
+        _climbHitData = hitData;
+        _hasClimbHitSnapshot = true;
         _climbAnimSO = so;
         _hasMatched = false;
     }
@@ -107,6 +137,7 @@ public class ClimbAnimTargetMatch : MonoBehaviour
         _climbAnimSO = null;
         _hasMatched = false;
         _lastAnimHash = 0;
+        _hasClimbHitSnapshot = false;
     }
 
     /// <summary>

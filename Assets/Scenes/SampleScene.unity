@@ -3904,6 +3904,8 @@ GameObject:
   - component: {fileID: 1087346604}
   - component: {fileID: 6807115286638681742}
   - component: {fileID: 6807115286638681743}
+  - component: {fileID: 1087346605}
+  - component: {fileID: 1087346606}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -3987,6 +3989,45 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!114 &1087346605
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1087346601}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d64deb2e7a1f48d58034e40b1b522934, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 72
+  rayUpOffset: 0.15
+  rayDistance: 0.6
+  footGroundOffset: 0.1
+  maxLiftCorrection: 0.1
+  weightSpeed: 4
+  heightSpeed: 6
+  debugDraw: 1
+--- !u!114 &1087346606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1087346601}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: accad0e6afbd4515aa94d3037f6c71d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  vaultClearance: 0.2
+  climbStandOffset: 0.04
+  climbStandoff: 0.2
+  climbOverProgress: 0.5
+  climbTopInset: 0.2
 --- !u!1 &1099325662
 GameObject:
   m_ObjectHideFlags: 0
@@ -10234,8 +10275,6 @@ MonoBehaviour:
   _animator: {fileID: 6807115286638681750}
   playerRigidbody: {fileID: 6807115286638681742}
   state: 0
-  animDeltaPosition: {x: 0, y: 0, z: 0}
-  animDeltaRotation: {x: 0, y: 0, z: 0, w: 0}
 --- !u!114 &6807115286638681739
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10256,6 +10295,7 @@ MonoBehaviour:
   ObstacleLayer:
     serializedVersion: 2
     m_Bits: 64
+  topEdgeInset: 0.08
 --- !u!114 &6807115286638681740
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Climb
   m_EditorClassIdentifier: 
   animStateName: ClimbJump
-  matchStart: 0.25
-  matchEnd: 0.6
+  matchStart: 0.278
+  matchEnd: 0.327
   minHeight: 0.5
   maxHeight: 1.5
   targetJoint: 1

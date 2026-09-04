@@ -13,6 +13,8 @@ public class PlayerRangeDetector : MonoBehaviour
     public float heightPointTransformOffset = 0.1f;
     public float widthPointTransformOffset = 1f;
     public LayerMask ObstacleLayer;
+    [Tooltip("肢体落点沿法线向障碍内侧的偏移量（让手/脚落在顶面内而非边缘外）")]
+    public float topEdgeInset = 0.08f;
 
 
     public ObstacleHitData ObstacleCheck()
@@ -23,6 +25,27 @@ public class PlayerRangeDetector : MonoBehaviour
         hitData.forwardHitFound = Physics.Raycast(forwardOrigin,transform.forward,
             out hitData.forwardHit,forwardRayLength,ObstacleLayer);
         Debug.DrawRay(forwardOrigin, transform.forward * forwardRayLength, (hitData.forwardHitFound) ? Color.red : Color.white);
+
+        // 障碍物实际几何：从命中碰撞体的 bounds 推导顶面高度/尺寸与前缘点，
+        // 供高度匹配与肢体落点使用（比高度射线命中点更稳，不受射线偏移参数影响）
+        if (hitData.forwardHitFound && hitData.forwardHit.collider != null)
+        {
+            Bounds bounds = hitData.forwardHit.collider.bounds;
+            hitData.obstacleTopY = bounds.max.y;
+            hitData.obstacleCenter = bounds.center;
+            hitData.obstacleSize = bounds.size;
+
+            Vector3 faceNormal = hitData.forwardHit.normal;
+            faceNormal.y = 0f;
+            if (faceNormal.sqrMagnitude > 0.0001f)
+                faceNormal.Normalize();
+
+            // 顶面前缘点：命中点抬到顶面高度，再沿法线向障碍内侧偏移
+            hitData.topFrontEdgePoint = hitData.forwardHit.point;
+            hitData.topFrontEdgePoint.y = bounds.max.y;
+            hitData.topFrontEdgePoint += faceNormal * topEdgeInset;
+            hitData.geometryValid = true;
+        }
 
         if (hitData.forwardHitFound )
         {
@@ -53,4 +76,11 @@ public struct ObstacleHitData
     public RaycastHit forwardHit;
     public RaycastHit heightHit;
     public RaycastHit widthHit;
+
+    // 障碍物实际几何（由 forwardHit.collider.bounds 推导）
+    public bool geometryValid;        // 几何信息是否有效
+    public float obstacleTopY;        // 顶面世界高度
+    public Vector3 obstacleCenter;    // 碰撞体世界中心
+    public Vector3 obstacleSize;      // 障碍物世界尺寸
+    public Vector3 topFrontEdgePoint; // 顶面前缘点（面向玩家一侧，略向障碍内侧偏移）
 }

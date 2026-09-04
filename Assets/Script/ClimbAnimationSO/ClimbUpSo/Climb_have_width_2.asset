@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   animStateName: HaveWidthClimb2
   matchStart: 0.1
-  matchEnd: 0.4
+  matchEnd: 0.141
   minHeight: 0.9
   maxHeight: 2
   targetJoint: 1

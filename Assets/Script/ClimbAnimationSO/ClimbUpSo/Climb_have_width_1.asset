@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Climb_have_width_1
   m_EditorClassIdentifier: 
   animStateName: HaveWidthClimb1
-  matchStart: 0.4
-  matchEnd: 0.6
+  matchStart: 0.483
+  matchEnd: 0.527
   minHeight: 0.5
   maxHeight: 0.9
   targetJoint: 4
