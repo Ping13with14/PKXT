@@ -54,3 +54,6 @@ sysinfo.txt
 
 # 本地工具缓存
 .dotnet-home/
+
+# 本地 Claude Code 个人配置（含权限规则，勿提交）
+.claude/
